@@ -58,7 +58,10 @@
 # Fixed some wording.
 # Changed login form to POST so that password isn't visible in URL field.
 # Improved security of password hash file.
+# Added a version string.
 #
+
+my $silkVersion = "0.1.1";
 
 
 
