@@ -40,6 +40,7 @@
 #
 # 2004-April-9   Jason Rohrer
 # Made tarball processing code cleaner.
+# Added an ever-present link to the start node.
 #
 
 
@@ -345,7 +346,8 @@ elsif( not $readOnlyMode and
 elsif( $action eq "showNode" 
        or $action eq "login"
        or $action eq ""
-       or $readOnlyMode  ) {
+       or $readOnlyMode
+       or $action eq "showStartNode" ) {
     # only allow the showNode action in read-only mode
 
     my $nodeID = $cgiQuery->param( "nodeID" );
@@ -354,7 +356,9 @@ elsif( $action eq "showNode"
     # may have x-prefix for an external link ID
     ( $nodeID ) = ( $nodeID =~ /(x?\d+)/ );
     
-    if( $nodeID eq "" ) {
+    if( $nodeID eq "" 
+        or $action eq "showStartNode" ) {
+        
         printStartNode();
     }
     else {
@@ -1597,12 +1601,22 @@ sub printPageHeader {
     
     print "<TABLE BORDER=0 CELLPADDING=5 CELLSPACING=0><TR>";
     print "<TD><FONT SIZE=7>silk</FONT></TD>\n";
+    
+    print "<TD>\n";
+    
+    if( not $requirePassword
+        or ( $requirePassword and $passwordCorrect )
+        or $readOnlyMode ) {
+        print "-<A HREF=\"$scriptURL?action=showStartNode\">".
+              "go to start node</A><BR>\n";
+    }
     if( not $requirePassword 
         or ( $requirePassword and $passwordCorrect ) ) {
-        print "<TD>-<A HREF=\"$scriptURL?action=newNode\">new node</A><BR>\n";
+        print "-<A HREF=\"$scriptURL?action=newNode\">new node</A><BR>\n";
         print "-<A HREF=\"$scriptURL?action=newExternalLink\">" . 
-            "new external link</A></TD>\n";
+            "new external link</A>\n";
     }
+    print "</TD>\n";
     print "</TR></TABLE>\n";
     
     print "</TD>\n";
