@@ -6,6 +6,9 @@
 # 2004-March-16   Jason Rohrer
 # Created.
 #
+# 2004-March-17   Jason Rohrer
+# Added support for external links.
+#
 
 
 
@@ -63,8 +66,9 @@ print $cgiQuery->header( -type=>'text/html', -expires=>'now',
 if( $action eq "showNode" ) {
     my $nodeID = $cgiQuery->param( "nodeID" );
 
-    #untaint
-    ( $nodeID ) = ( $nodeID =~ /(\d+)/ );
+    # untaint
+    # may have x-prefix for an external link ID
+    ( $nodeID ) = ( $nodeID =~ /(x?\d+)/ );
     
     printNode( $nodeID );
 }
@@ -73,8 +77,9 @@ elsif( $action eq "makeLink" ) {
     my $secondNodeID = $cgiQuery->param( "secondNodeID" );
 
     #untaint
-    ( $firstNodeID ) = ( $firstNodeID =~ /(\d+)/ );
-    ( $secondNodeID ) = ( $secondNodeID =~ /(\d+)/ );
+    # may have x-prefix for an external link ID
+    ( $firstNodeID ) = ( $firstNodeID =~ /(x?\d+)/ );
+    ( $secondNodeID ) = ( $secondNodeID =~ /(x?\d+)/ );
     
     
     if( $firstNodeID ne "" and $secondNodeID ne "" ) {
@@ -87,14 +92,14 @@ elsif( $action eq "removeLinks" ) {
     my $firstNodeID = $cgiQuery->param( "firstNodeID" );
     
     #untaint
-    ( $firstNodeID ) = ( $firstNodeID =~ /(\d+)/ );
+    ( $firstNodeID ) = ( $firstNodeID =~ /(x?\d+)/ );
 
     if( $firstNodeID ne "" ) {
         my @idsToRemove = $cgiQuery->param( "secondNodeID" );
         
         foreach my $secondNodeID ( @idsToRemove ) {
             # untaint
-            ( $secondNodeID ) = ( $secondNodeID =~ /(\d+)/ );
+            ( $secondNodeID ) = ( $secondNodeID =~ /(x?\d+)/ );
     
     
             if( $secondNodeID ne "" ) {
@@ -109,7 +114,8 @@ elsif( $action eq "addToHotLinks" ) {
     my $nodeID = $cgiQuery->param( "nodeID" );
     
     #untaint
-    ( $nodeID ) = ( $nodeID =~ /(\d+)/ );
+    # may be of form  139   or of form   x139  
+    ( $nodeID ) = ( $nodeID =~ /(x?\d+)/ );
     
     # make sure node not already in list 
     my $exists = 0;
@@ -121,7 +127,7 @@ elsif( $action eq "addToHotLinks" ) {
     
     foreach my $oldID ( @oldLinkIDs ) {
 
-        if( $oldID == $nodeID ) {
+        if( $oldID eq $nodeID ) {
             $exists = 1;
         }
     }
@@ -135,7 +141,7 @@ elsif( $action eq "removeHotLinks" ) {
     my $nodeID = $cgiQuery->param( "nodeID" );
     
     #untaint
-    ( $nodeID ) = ( $nodeID =~ /(\d+)/ );
+    ( $nodeID ) = ( $nodeID =~ /(x?\d+)/ );
     
 
     # idToRemove parameter might occur multiple times, once for
@@ -159,7 +165,7 @@ elsif( $action eq "removeHotLinks" ) {
             
             my $removed = 0;
             foreach my $id ( @idsToRemove ) {
-                if( $id == $oldID ) {
+                if( $id eq $oldID ) {
                     $removed = 1;
                 }
                 
@@ -262,6 +268,102 @@ elsif( $action eq "updateNode" ) {
 
     printNode( $nodeID );
 }
+elsif( $action eq "updateExternalLink" ) {
+    my $linkID = $cgiQuery->param( "linkID" );
+    
+    #untaint
+    ( $linkID ) = ( $linkID =~ /(\d+)/ );
+
+    my $linkTitle = $cgiQuery->param( "linkTitle" ) || '';
+    my $linkURL = $cgiQuery->param( "linkURL" ) || '';    
+
+    writeFile( "$dataDirectory/externalLinks/$linkID.title", $linkTitle );
+    writeFile( "$dataDirectory/externalLinks/$linkID.url", $linkURL );
+
+    printNode( "x$linkID" );    
+}
+elsif( $action eq "editExternalLink" or 
+       $action eq "newExternalLink" ) {
+    my $linkID = "";
+    my $linkTitle = "";
+    my $linkURL = "";
+
+    if( $action eq "editExternalLink" ) {
+        $linkID = $cgiQuery->param( "linkID" );
+
+        #untaint
+        ( $linkID ) = ( $linkID =~ /(\d+)/ );
+
+        $linkTitle = 
+            readFileValue( "$dataDirectory/externalLinks/$linkID.title" );
+        $linkURL = 
+            readFileValue( "$dataDirectory/externalLinks/$linkID.url" );
+    }
+    
+    if( $linkID eq "" ) {
+        $linkID = readFileValue( "$dataDirectory/nextExternalLinkID" );
+        
+        #untaint
+        ( $linkID ) = ( $linkID =~ /(\d+)/ );
+
+        writeFile( "$dataDirectory/nextExternalLinkID", $linkID + 1 );
+
+        writeFile( "$dataDirectory/externalLinks/$linkID.url", $linkURL );
+        
+        writeFile( "$dataDirectory/externalLinks/$linkID.links", "" );
+        
+        $linkTitle = "";
+        $linkURL = "http://";
+    }
+
+    printPageHeader( "edit external link" );
+    
+    print "<TABLE CELLPADDING=0 CELLSPACING=0 BORDER=0 WIDTH=100%>\n";
+    
+    print "<TR><TD VALIGN=TOP ALIGN=CENTER WIDTH=75%>\n";
+    
+
+    print "<TABLE CELLPADDING=0 CELLSPACING=0 BORDER=0 WIDTH=90%><TR><TD>\n";
+
+    print "<FONT SIZE=7>edit external link</FONT><BR>\n";
+
+    print "<FORM METHOD=POST ACTION=\"$scriptURL\">\n";
+
+    print "<INPUT TYPE=\"hidden\" " . 
+        "NAME=\"action\" VALUE=\"updateExternalLink\">\n";
+    print "<INPUT TYPE=\"hidden\" NAME=\"linkID\" VALUE=\"$linkID\">\n";
+
+    
+    print "<TABLE BORDER=0>\n";
+    print "<TR><TD>title:</TD><TD><INPUT TYPE=\"text\" MAXLENGTH=256 ".
+          "SIZE=60 NAME=\"linkTitle\" VALUE=\"$linkTitle\"></TD></TR>\n";
+    
+    print "<TR><TD>url:</TD><TD><INPUT TYPE=\"text\" MAXLENGTH=256 ".
+          "SIZE=60 NAME=\"linkURL\" VALUE=\"$linkURL\"></TD></TR>\n";
+    
+    print "<TR><TD></TD><TD><INPUT TYPE=submit VALUE=\"update\" ".
+          "NAME=\"buttonUpdate\"></TD></TR>\n";
+    print "</TABLE>\n";
+
+
+    print "</FORM>\n";
+    
+
+    print "</TD></TR></TABLE>\n";
+    
+    
+    print "</TD>\n";
+    
+
+    print "<TD VALIGN=TOP WIDTH=25%>\n";
+
+    printLinkTable( "x$linkID", 0 );
+    
+    print "</TD></TR></TABLE>\n";
+    
+    printPageFooter();
+
+}
 else {  #default, show node form
     my $nodeID = "";
     my $nodeText = "";
@@ -358,36 +460,63 @@ else {  #default, show node form
 ##
 # Creates a 2-way link between nodes.
 #
-# @param0 the first node ID.
-# @param1 the second node ID.
+# @param0 the first node ID, or x-prefixed external link ID.
+# @param1 the second node ID, or x-prefixed external link ID.
+#
+# Example A:
+# makeLink( 13, 10 );
+#
+# Example B:
+# makeLink( "x13", 10 );
 ##
 sub makeLink {
     my $firstNodeID = $_[0];
     my $secondNodeID = $_[1];
 
+    my $firstLinkFile;
+    my $secondLinkFile;
+
+    if( $firstNodeID =~ m/x(\d+)/ ) {
+        
+        my $linkID = $1;
+        $firstLinkFile = "$dataDirectory/externalLinks/$linkID.links";
+    }
+    else {
+        $firstLinkFile = "$dataDirectory/nodes/$firstNodeID.links";
+    }
+
+    if( $secondNodeID =~ m/x(\d+)/ ) {
+        
+        my $linkID = $1;
+        $secondLinkFile = "$dataDirectory/externalLinks/$linkID.links";
+    }
+    else {
+        $secondLinkFile = "$dataDirectory/nodes/$secondNodeID.links";
+    }
+
+
     # make sure link does not already exist 
     my $exists = 0;
 
     # all links are 2-way, so we only need to test for existence in 1 direction
-    my $oldLinksText = 
-        readFileValue( "$dataDirectory/nodes/$firstNodeID.links" );
-    
+    my $oldLinksText = readFileValue( $firstLinkFile );
+
     # split by lines
     my @oldLinkIDs = split( /\n/, $oldLinksText );
     
     foreach my $oldID ( @oldLinkIDs ) {
 
-        if( $oldID == $secondNodeID ) {
+        if( $oldID eq $secondNodeID ) {
             $exists = 1;
         }
     }
 
     if( not $exists ) {
-        addToFile( "$dataDirectory/nodes/$firstNodeID.links", 
+        addToFile( $firstLinkFile, 
                    "$secondNodeID\n"  );
         # if we are linking a node to itself, only add once
-        if( $firstNodeID != $secondNodeID ) {
-            addToFile( "$dataDirectory/nodes/$secondNodeID.links", 
+        if( $firstNodeID ne $secondNodeID ) {
+            addToFile( $secondLinkFile, 
                        "$firstNodeID\n"  );
         }
     }
@@ -424,18 +553,37 @@ sub removeLinkOneWay {
     my $firstNodeID = $_[0];
     my $secondNodeID = $_[1];
     
-    my $nodeText = readFileValue( "$dataDirectory/nodes/$firstNodeID.txt" );
+    my $isFirstExternal;
+    my $firstLinkFile;
 
-    # remove any in-line links from the text
-    $nodeText =~
-        s/<$secondNodeID>//g;
-    $nodeText =~
-        s/<\/$secondNodeID>//g;
+    if( $firstNodeID =~ m/x(\d+)/ ) {
+        $firstNodeID = $1;
+        $isFirstExternal = 1;
+
+        $firstLinkFile = "$dataDirectory/externalLinks/$firstNodeID.links";
+    }
+    else {
+        $isFirstExternal = 0;
+        
+        $firstLinkFile = "$dataDirectory/nodes/$firstNodeID.links";
+    }
     
-    writeFile( "$dataDirectory/nodes/$firstNodeID.txt", $nodeText );
+    if( not $isFirstExternal ) {
+        my $nodeText = 
+            readFileValue( "$dataDirectory/nodes/$firstNodeID.txt" );
 
+        # remove any in-line links from the text
+        $nodeText =~
+            s/<$secondNodeID>//g;
+        $nodeText =~
+            s/<\/$secondNodeID>//g;
+        
+        writeFile( "$dataDirectory/nodes/$firstNodeID.txt", $nodeText );
+    }
+
+    
     my $oldLinksText = 
-        readFileValue( "$dataDirectory/nodes/$firstNodeID.links" );
+        readFileValue( $firstLinkFile );
     
     # and if our links list is not empty already
     if( $oldLinksText ne "" ) {
@@ -448,14 +596,14 @@ sub removeLinkOneWay {
         
         foreach my $oldID ( @oldLinkIDs ) {
             
-            if( $secondNodeID != $oldID ) {
+            if( $secondNodeID ne $oldID ) {
                 push( @newLinkIDs, "$oldID\n" );
             }
             # else drop the ID
         }
         
         my $newLinkText = join( "", @newLinkIDs );
-        writeFile( "$dataDirectory/nodes/$firstNodeID.links", $newLinkText );
+        writeFile( $firstLinkFile, $newLinkText );
     }
                 
 }
@@ -463,12 +611,15 @@ sub removeLinkOneWay {
 
 
 ##
-# Prints the full HTML display for a node.
+# Prints the full HTML display for a node or external link.
 #
-# @param0 the node ID.
+# @param0 the node ID, or an x-prefixed external link ID.
 #
-# Example:
+# Example A:
 # printNode( "13" );
+#
+# Example B:
+# printNode( "x13" );
 ##
 sub printNode {
     my $nodeID = $_[0];
@@ -477,27 +628,66 @@ sub printNode {
         $nodeID = 0;
     }
     
-    my $nodeText = readFileValue( "$dataDirectory/nodes/$nodeID.txt" );
+    my $isExternal;
+    if( $nodeID =~ m/x(\d+)/ ) {
+        # an external link
+        
+        # get just the numerical portion (without the "x")
+        $nodeID = $1;
+       
+        $isExternal = 1;
+    }
+    else {
+        # an internal node
+        $isExternal = 0;
+    }
+    
+    my $nodeTitle;
+    my @nodeElements;
+    
+    if( $isExternal ) {
+        $nodeTitle = 
+            readFileValue( "$dataDirectory/externalLinks/$nodeID.title" );
+        my $nodeURL = 
+            readFileValue( "$dataDirectory/externalLinks/$nodeID.url" );
+        
+        @nodeElements = 
+            ( "<A HREF=\"$nodeURL\"><FONT COLOR=#00A000>$nodeURL</A>" );
+    }
+    else {
+        my $nodeText = readFileValue( "$dataDirectory/nodes/$nodeID.txt" );
 
-    # split into paragraphs
-    my @nodeElements = split( /\n\n/, $nodeText );
+        # split into paragraphs
+        @nodeElements = split( /\n\n/, $nodeText );
 
-    my $nodeTitle = shift( @nodeElements );
+        $nodeTitle = shift( @nodeElements );
+    }
 
     printPageHeader( $nodeTitle );
 
     print "<TABLE CELLPADDING=0 CELLSPACING=0 BORDER=0 WIDTH=100%>\n";
-    
+        
     print "<TR><TD VALIGN=TOP ALIGN=CENTER WIDTH=75%>\n";
     
-
-    print "<TABLE CELLPADDING=0 CELLSPACING=0 BORDER=0 WIDTH=90%><TR><TD>\n";
+        
+    print "<TABLE CELLPADDING=0 CELLSPACING=0 BORDER=0 WIDTH=90%>" .
+        "<TR><TD>\n";
 
     print "<FONT SIZE=5>$nodeTitle</FONT>";
-    print " [<A HREF=\"$scriptURL?action=editNode&nodeID=$nodeID\">" . 
-        "edit</A>]\n"; 
-    print " [<A HREF=\"$scriptURL?action=addToHotLinks&nodeID=$nodeID\">" . 
-        "hot link</A>]";
+    if( $isExternal ) {
+        print 
+          " [<A HREF=\"$scriptURL?action=editExternalLink&linkID=$nodeID\">" . 
+          "edit</A>]\n"; 
+        print 
+          " [<A HREF=\"$scriptURL?action=addToHotLinks&nodeID=x$nodeID\">". 
+          "hot link</A>]";
+    }
+    else {
+        print " [<A HREF=\"$scriptURL?action=editNode&nodeID=$nodeID\">" . 
+            "edit</A>]\n"; 
+        print " [<A HREF=\"$scriptURL?action=addToHotLinks&nodeID=$nodeID\">". 
+            "hot link</A>]";
+    }
 
     print "<BR><BR>\n";
 
@@ -506,16 +696,30 @@ sub printNode {
         # with HTML links to show the node (example:  show node 13)
         $paragraph =~ 
             s/<(\d+)>/<A HREF="$scriptURL?action=showNode&nodeID=$1">/g;
-            #s/(<\d+>)/test/;
-
+        
         # search for link end tags, like </13>, and replace them
         # with HTML link end tags, </A>
         $paragraph =~ 
-            s/(<\/\d+>)/<\/A>/g;
+            s/<\/\d+>/<\/A>/g;
+
+        # search for external link start/end tags, like <x13> or </x13>, and 
+        # replace them with HTML links
+        while( $paragraph =~ m/<\/?x(\d+)>/ ) {
+            my $linkID = $1;
+            
+            my $linkURL = 
+                readFileValue( "$dataDirectory/externalLinks/$linkID.url" );
+            
+            $paragraph =~ 
+                s/<x$linkID>/<A HREF="$linkURL"><FONT COLOR=#00A000>/g;
+
+            $paragraph =~ 
+                s/<\/x$linkID>/<\/FONT><\/A>/g;
+        }
 
         print "$paragraph<BR><BR>\n";        
     }
-
+        
     print "</TD></TR></TABLE>\n";
     
     
@@ -524,8 +728,13 @@ sub printNode {
 
     print "<TD VALIGN=TOP WIDTH=25%>\n";
 
-    printLinkTable( $nodeID, 0 );
-    
+    if( $isExternal ) {
+        printLinkTable( "x$nodeID", 0 );
+    }
+    else {
+        printLinkTable( $nodeID, 0 );
+    }
+
     print "</TD></TR></TABLE>\n";
 
     printPageFooter();
@@ -619,11 +828,28 @@ sub printNodeLinks {
             print "<TD VALIGN=MIDDLE>" .
                 "<INPUT TYPE=\"checkbox\" NAME=\"secondNodeID\"" .
                 "VALUE=\"$id\"></TD>";
-            print "<TD VALIGN=MIDDLE>" .
-                "<A HREF=\"$scriptURL?action=showNode&nodeID=$id\">".
-                "$title</A></TD></TR>\n";
-            $linkNumber++;
-            
+
+            if( $id =~ m/x(\d+)/ ) {
+                # external link
+                my $linkID = $1;
+                my $linkTitle = readFileValue( 
+                    "$dataDirectory/externalLinks/$linkID.title" );
+                my $linkURL = readFileValue( 
+                    "$dataDirectory/externalLinks/$linkID.url" );
+                
+                print "<TD VALIGN=MIDDLE>" .
+                      "<A HREF=\"$linkURL\"><FONT COLOR=#00A000>".
+                      "$linkTitle</FONT></A> ".
+                      "(<A HREF=\"$scriptURL?action=showNode&".
+                      "nodeID=x$linkID\">v</A>)</TD></TR>\n";
+            }
+            else {
+                print "<TD VALIGN=MIDDLE>" .
+                    "<A HREF=\"$scriptURL?action=showNode&nodeID=$id\">".
+                    "$title</A></TD></TR>\n";
+            }
+
+            $linkNumber++;            
         }
         print "</TABLE>\n";
 
@@ -636,20 +862,34 @@ sub printNodeLinks {
 
 
 ##
-# Gets the nodes linked from a node.
+# Gets the nodes linked from a node (or linked from an external link).
 #
-# @param0 the node ID to get links for.
+# @param0 the node ID to get links for, or an x-prefixed external link ID.
 #
 # @return a list of linked node IDs.
 #
-# Example:
+# Example A:
 # my @linkedIDs = getNodeLinks( 13 );
+#
+# Example B:
+# my @linkedIDs = getNodeLinks( "x13" );
 ##
 sub getNodeLinks {
     my $nodeID = $_[0];
     
-    my $linksText = readFileValue( "$dataDirectory/nodes/$nodeID.links" );
+    my $linksText;
     
+    if( $nodeID =~ m/x(\d+)/ ) {
+        # arg $1 gets the (\d+) part of the match
+        my $externalLinkID = $1;
+        $linksText = 
+            readFileValue( 
+                "$dataDirectory/externalLinks/$externalLinkID.links" );
+        }
+    else {
+        $linksText = readFileValue( "$dataDirectory/nodes/$nodeID.links" );
+    }
+
     # split by lines
     my @linkIDs = split( /\n/, $linksText );
 
@@ -657,7 +897,7 @@ sub getNodeLinks {
 
     foreach my $id ( @linkIDs ) {
         #untaint
-        ( $id ) = ( $id =~ /(\d+)/ );
+        ( $id ) = ( $id =~ /(x?\d+)/ );
         
         push( @untaintedIDs, $id );
     }
@@ -670,10 +910,10 @@ sub getNodeLinks {
 ##
 # Gets the nodes on th hot links list.
 #
-# @return a list of linked node IDs.
+# @return a list of linked node IDs and external link IDs.
 #
 # Example:
-# my @linkedIDs = getHotLinks( 13 );
+# my @linkedIDs = getHotLinks();
 ##
 sub getHotLinks {
     my $linksText = readFileValue( "$dataDirectory/hot.links" );
@@ -685,7 +925,7 @@ sub getHotLinks {
 
     foreach my $id ( @linkIDs ) {
         #untaint
-        ( $id ) = ( $id =~ /(\d+)/ );
+        ( $id ) = ( $id =~ /(x?\d+)/ );
         
         push( @untaintedIDs, $id );
     }
@@ -745,13 +985,29 @@ sub printHotLinks {
                 " VALUE=\"$id\"></TD>";
             print "<TD VALIGN=MIDDLE>" .
                 "[<A HREF=\"$scriptURL?action=makeLink&firstNodeID=$nodeID" .
-                "&secondNodeID=$id\">+</A>]</TD>"; 
-            print "<TD VALIGN=MIDDLE>" .
-                "<A HREF=\"$scriptURL?action=showNode&nodeID=$id\">" .
-                "$title</A></TD></TR>\n";
-            
-            $linkNumber++;
+                "&secondNodeID=$id\">+</A>]</TD>";
 
+            if( $id =~ m/x(\d+)/ ) {
+                # external link
+                my $linkID = $1;
+                my $linkTitle = readFileValue( 
+                    "$dataDirectory/externalLinks/$linkID.title" );
+                my $linkURL = readFileValue( 
+                    "$dataDirectory/externalLinks/$linkID.url" );
+                
+                print "<TD VALIGN=MIDDLE>" .
+                      "<A HREF=\"$linkURL\"><FONT COLOR=#00A000>".
+                      "$linkTitle</FONT></A> ".
+                      "(<A HREF=\"$scriptURL?action=showNode&".
+                      "nodeID=x$linkID\">v</A>)</TD></TR>\n";
+            }
+            else {
+                print "<TD VALIGN=MIDDLE>" .
+                      "<A HREF=\"$scriptURL?action=showNode&nodeID=$id\">" .
+                      "$title</A></TD></TR>\n";
+            }
+
+            $linkNumber++;
         }
         print "</TABLE>\n";
         print "<INPUT TYPE=\"submit\" VALUE=\"remove marked\">\n";
@@ -783,7 +1039,10 @@ sub printPageHeader {
         "<TR><TD BGCOLOR=#C0C0C0>";
     #print "test<BR>";
     print "<TABLE><TR><TD><FONT SIZE=7>silk</FONT></TD>\n";
-    print "<TD>-- <A HREF=\"$scriptURL\">new node</A> --</TD></TR></TABLE>\n";
+    print "<TD>-- <A HREF=\"$scriptURL\">new node</A> --<BR>\n";
+    print "-- <A HREF=\"$scriptURL?action=newExternalLink\">" . 
+        "new external link</A> --\n";
+    print "</TD></TR></TABLE>\n";
     print "</TD></TR></TABLE>\n";
 #    print "<HR>\n";
 
@@ -801,26 +1060,41 @@ sub printPageFooter {
 
 
 ##
-# Gets the title of a node.
+# Gets the title of a node (or an external link).
 #
-# @param0 the node ID.
+# @param0 the node ID, or an x-prefixed external link ID.
 #
-# @return the node's title.
+# @return the node's (or external link's) title.
 #
-# Example:
+# Example A:
 # my $title = getNodeTitle( "13" );
+#
+# Example B:
+# my $title = getNodeTitle( "x13" );
 ##
 sub getNodeTitle {
     my $nodeID = $_[0];
 
-    my $nodeText = readFileValue( "$dataDirectory/nodes/$nodeID.txt" );
+    if( $nodeID =~ m/x(\d+)/ ) {
+        # external link
+        # extract the \d+ part of the matched regexp
+        my $linkID = $1;
+        
+        my $title = 
+            readFileValue( "$dataDirectory/externalLinks/$linkID.title" );
+        
+        return $title;
+    }
+    else {
+        my $nodeText = readFileValue( "$dataDirectory/nodes/$nodeID.txt" );
 
-    # split into paragraphs
-    my @nodeElements = split( /\n\n/, $nodeText );
-
-    my $nodeTitle = shift( @nodeElements );
+        # split into paragraphs
+        my @nodeElements = split( /\n\n/, $nodeText );
+        
+        my $nodeTitle = shift( @nodeElements );
     
-    return $nodeTitle;
+        return $nodeTitle;
+    }
 }
 
 
@@ -831,12 +1105,21 @@ sub setupDataDirectory {
         makeDirectory( "$dataDirectory/nodes", oct( "0777" ) );
     }
     
+    if( not -e "$dataDirectory/externalLinks" ) {
+        makeDirectory( "$dataDirectory/externalLinks", oct( "0777" ) );
+    }
+    
     if( not -e "$dataDirectory/hot.links" ) {
         writeFile( "$dataDirectory/hot.links", "" );
     }
     if( not -e "$dataDirectory/nextNodeID" ) {
         writeFile( "$dataDirectory/nextNodeID", "0" );
     }
+    
+    if( not -e "$dataDirectory/nextExternalLinkID" ) {
+        writeFile( "$dataDirectory/nextExternalLinkID", "0" );
+    }
+
 }
 
 
