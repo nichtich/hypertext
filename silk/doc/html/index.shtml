@@ -13,7 +13,7 @@ frictionless linking
 <TABLE WIDTH=75%>
 <TR><TD>
 <H1>what is silk?</H1>
-<B>silk</B> is a web-based hypertext system with a focus on linking.  
+<B>silk</B> is a Web-based hypertext system with a focus on linking.  
 silk's design makes linking as easy and frictionless as possible.
 silk was created as a personal notetaking tool---it is perfect for recording ideas and the connections between them---but it can also be used for mult-user collaboration, much in the same way as a <A HREF="http://c2.com/cgi/wiki?WikiWikiWeb">Wiki</A>.
 <BR>
@@ -41,7 +41,7 @@ Furthermore, by forcing links to be anchored, these hypertext systems make bidir
 In a silk web, an anchorless, bidirectional link can be created with a single mouse click.
 Optional link anchors can be specified around text regions using a straight-forward syntax (three characters to start the link region and four characters to end it).
 Internal linking never requires knowlege of document identifiers.
-silk webs also support links to the external web, which of course require URLs as document identifiers.
+silk webs also support links to the external Web, which of course require URLs as document identifiers.
 However, a URL can be entered once and used over and over throughout a silk web:  after creating an external link, it can be connected to an internal silk node with a single mouse click.    
 
 
@@ -53,12 +53,66 @@ The <A HREF="userGuide.shtml">silk User's Guide</A> provides a complete descript
 
 <H1>how can i run my own silk web?</H1>
 
-You need a web server that supports CGI scripts written in Perl.
-If you have such a web server, you can probably run silk (if you think you are missing required Perl modules, take a look at the list of <A HREF="requirements.shtml">software requirements</A>).<BR>
+You need a Web server that supports CGI scripts written in Perl.
+If you have such a Web server, you can probably run silk (if you think you are missing required Perl modules, take a look at the list of <A HREF="requirements.shtml">software requirements</A>).<BR>
 <BR>
-<A HREF="">Download the script</A> (v0.1), place it in your server's cgi-bin directory, and make sure your script is executable by your web server (for example, <TT>chmod o+x silk.pl</TT>).
+<A HREF="">Download the script</A> (v0.1), place it in your server's cgi-bin directory, and make sure your script is executable by your Web server (for example, <TT>chmod o+x silk.pl</TT>).
 You also need to create a directory where silk will store its data (for example, <TT>cgi-data/silk</TT>).
-This data directory needs to be writeable/executable by your web server.
+This data directory needs to be writeable/executable by your Web server.<BR>
+<BR>
+Open the silk.pl file in a text editor and configure the various settings that are near the top of the file.
+Comments are included in silk.pl to explain each setting.<BR>
+<BR>
+If you have installed CGI scripts in the past, installing silk should be easy.
+If you are unfamiliar with CGI scripts, instructions are available <A HREF="http://www.google.com/search?hl=en&lr=&ie=ISO-8859-1&safe=off&q=install+cgi+script&btnG=Search">elsewhere on the Web</A>.
+ 
+
+<H1>what about other hypertext systems?</H1>
+
+No hypertext system <I>tries</I> to make linking difficult.
+After all, links are what set hypertext apart from plain text.
+However, the fact remains that the act of linking <I>is</I> difficult in most hypertext systems.
+This difficulty may be due to the fact that these systems do not focus on easy linking explicitly.<BR>
+<BR>
+Hypertext predates the Web by many years, and many non-Web hypertext systems featured slick graphical interfaces (for example, the ability to drag an animated arrow from one window to another to create a link).
+Most of these non-Web hypertext systems are no longer available, though two such systems are still being developed:  Eastgate Systems distributes both <A HREF="http://www.eastgate.com/Storyspace.html">Storyspace</A> and <A HREF="http://www.eastgate.com/Tinderbox/">Tinderbox</A>, with Tinderbox being their more recent offering.
+Though it is difficult to compare silk's Web-based user interface with Tinderbox's multi-windowed graphical environment, link creation and management in silk is debatably easier (in Tinderbox, a simple operation like deleting a link requires hunting through a menu, manipulating a dialog box, and finally right-clicking to uncover the delete operation).
+Of course, silk pales in many ways compared to the feature-rich Tinderbox, but what is a hypertext system for if it's not for linking?<BR>
+<BR>
+More fair comparissons can be drawn between silk and other Web-based hypertext systems.
+First, consider the Web itself.
+To create a Web link, you first need to obtain the URL of the destination page---URLs are often complicated enough to make memorization impractical, so a copy-and-paste operation is usually necessary.
+For the sake of a simple example, suppose our destination URL is <TT>http://www.google.com</TT>.
+Because all Web links must be anchored inline around text, we must select appropriate text in our source page for the link.
+If no appropriate text exists, we must add text to our document to serve as the link anchor, for example, <A HREF="http://www.google.com">click here to visit Google</A>.
+Finally, we must type the HTML linking syntax (easy to memorize, with practice, but always a pain to type):
+<CENTER><TT>
+&lt;A HREF="http://www.google.com"&gt;click here to visit Google&lt;/A&gt;
+</TT></CENTER>
+Of course, after going through these steps, we have only created a unidirectional link:  the multi-owner architecture of the web makes automatic bidirectional linking impossible (and even if we own the destination page, we have to manually create the back link by repeating these steps).<BR>
+<BR>
+
+Linking is not the only operation that is cumbersome on the Web:  page creation, in general, can be painful.
+<A HREF="http://c2.com/cgi/wiki?WikiWikiWeb">Wikis</A> were developed in response to this problem, and they focus on making web maintenence quick and easy.
+Part of the Wiki package is simplified linking:  creating a link is as easy as typing the destination page title in camel case (for example, a SamplePageTitle).
+For people used to the cumbersome HTML linking syntax, this new syntax was a breath of fresh air.
+However, camel case linking, or any title-based linking scheme is not free of encumberances.
+First, you have to know the title of the destination page before you can link to it (perhaps easier to remember than a URL, but still easy to misspell).
+Second, node titles must be set when the node is created and never changed:  changing a node's title would effectively break all links that point to the node.
+Third, links still must be anchored inline, and furthermore, the anchor text is forced by the linking syntax.
+If SamplePageTitle does not fit well into the flow of your text, you cannot make a link.
+Successors to the original Wiki system allow custom link anchor text but introduce semi-cumbersome syntax to support it (though nothing can compare to HTML's linking syntax).
+Finally, despite the fact that Wikis are self-contained systems, their links are unidirectional.<BR>
+<BR>
+Compared to linking in a Wiki, linking in silk is much easier.
+First, you never need to know a node identifier (for example, a title) to create a silk link:  you simply add the destination node to the list of hot links.
+Since links do not depend on node titles, you can change the title of any node at any time, and since all links are bidirectional, link lists always show the current titles of the nodes they contain.
+Second, anchoring links inline is optional, so links can be quickly created without fitting them into the textual flow of the source or destination node.
+On the other hand, Wikis focus on quick text formatting, with easy syntax for font styles, lists, and indentation---silk focuses exclusively on linking and does not support formatting text.
+
+ 
+
+    
  
   
 
