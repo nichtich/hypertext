@@ -48,6 +48,7 @@
 # 2004-April-12   Jason Rohrer
 # Added support for inline title links.
 # Changed all quick ref tags to lower case.
+# Fixed bugs in title link creation and removal.
 #
 
 
@@ -572,7 +573,7 @@ elsif( $action eq "updateNode" ) {
         # may be of form  139   or of form   x139  
         ( $linkID ) = ( $linkID =~ /(x?\d+)/ );
 
-        if( $nodeText =~ m/<$tag>/i ) {
+        if( $nodeText =~ m/<\s*$tag\s*(\s+t)?>/i ) {
             # text contains a link to this tag
             
             # make sure that this node is on our link list
@@ -1097,6 +1098,17 @@ sub removeLinkOneWay {
         $nodeText =~
             s/<\/$secondNodeID>//g;
         
+        # replace any node title links with the actual node title
+        # (this keeps the text consistent, though the node title
+        #  may fall out of synch in the future since the link no
+        #  longer exists)
+
+        my $secondNodeTitle = getNodeTitle( $secondNodeID );
+
+        $nodeText =~
+            s/<$secondNodeID t>/$secondNodeTitle/gi;
+                
+
         writeFile( "$dataDirectory/nodes/$firstNodeID.txt", $nodeText );
     }
 
