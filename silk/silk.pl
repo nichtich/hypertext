@@ -17,6 +17,7 @@
 # with a node update to ensure that tag mapping is consistent when
 # a node is being edited by multiple users.
 # Added hot link flags for each node in current node's link list.
+# Added a quick-hot-link checkbox on the edit node/link screens.
 #
 
 
@@ -251,32 +252,7 @@ elsif( $action eq "addToHotLinks" ) {
     # may be of form  139   or of form   x139  
     ( $showNodeID ) = ( $showNodeID =~ /(x?\d+)/ );
 
-
-    # make sure node not already in list 
-    my $exists = 0;
-
-
-    # lock to protect our file update    
-    open( LOCK_FILE, "$dataDirectory/lock" ) or die;
-    flock( LOCK_FILE, 2 ) or die;
-
-    my $oldLinksText = readFileValue( "$dataDirectory/hot.links" );
-    
-    # split by lines
-    my @oldLinkIDs = split( /\n/, $oldLinksText );
-    
-    foreach my $oldID ( @oldLinkIDs ) {
-
-        if( $oldID eq $nodeID ) {
-            $exists = 1;
-        }
-    }
-
-    if( not $exists ) {
-        addToFile( "$dataDirectory/hot.links", "$nodeID\n" );
-    }
-
-    close( LOCK_FILE );
+    addToHotLinks( $nodeID );
 
     printNode( $showNodeID );
 }
@@ -393,6 +369,13 @@ elsif( $action eq "updateNode" ) {
     }
    
     writeFile( "$dataDirectory/nodes/$nodeID.txt", $nodeText );
+    
+    my $autoAddToHotLinks = $cgiQuery->param( "autoAddToHotLinks" ) || '';
+    
+    if( $autoAddToHotLinks eq "1" ) {
+        addToHotLinks( "$nodeID" );
+    }
+
 
     printNode( $nodeID );
 }
@@ -405,6 +388,8 @@ elsif( $action eq "updateExternalLink" ) {
     my $linkTitle = $cgiQuery->param( "linkTitle" ) || '';
     my $linkURL = $cgiQuery->param( "linkURL" ) || '';    
 
+    my $autoAddToHotLinks = $cgiQuery->param( "autoAddToHotLinks" ) || '';    
+
     
     # lock around updates    
     open( LOCK_FILE, "$dataDirectory/lock" ) or die;
@@ -414,6 +399,11 @@ elsif( $action eq "updateExternalLink" ) {
     writeFile( "$dataDirectory/externalLinks/$linkID.url", $linkURL );
 
     close( LOCK_FILE );
+    
+    if( $autoAddToHotLinks eq "1" ) {
+        addToHotLinks( "x$linkID" );
+    }
+
 
     printNode( "x$linkID" );    
 }
@@ -477,13 +467,18 @@ elsif( $action eq "editExternalLink" or
 
     
     print "<TABLE BORDER=0>\n";
-    print "<TR><TD>title:</TD><TD><INPUT TYPE=\"text\" MAXLENGTH=256 ".
+    print "<TR><TD>title:</TD><TD COLSPAN=2>".
+          "<INPUT TYPE=\"text\" MAXLENGTH=256 ".
           "SIZE=60 NAME=\"linkTitle\" VALUE=\"$linkTitle\"></TD></TR>\n";
     
-    print "<TR><TD>url:</TD><TD><INPUT TYPE=\"text\" MAXLENGTH=256 ".
+    print "<TR><TD>url:</TD><TD COLSPAN=2><INPUT TYPE=\"text\" MAXLENGTH=256 ".
           "SIZE=60 NAME=\"linkURL\" VALUE=\"$linkURL\"></TD></TR>\n";
     
-    print "<TR><TD></TD><TD><INPUT TYPE=submit VALUE=\"update\" ".
+    print "<TR><TD></TD><TD>".
+          "<INPUT TYPE=\"checkbox\" NAME=\"autoAddToHotLinks\"" .
+          "VALUE=\"1\">add to hot links</TD>".
+          "<TD ALIGN=RIGHT>".
+          "<INPUT TYPE=submit VALUE=\"update\" ".
           "NAME=\"buttonUpdate\"></TD></TR>\n";
     print "</TABLE>\n";
 
@@ -634,9 +629,11 @@ else {  #default, show node form
     print "<BR>\n<TABLE CELLPADDING=0 CELLSPACING=0 BORDER=0 WIDTH=90%>";
     print "<TR><TD>\n";
 
-    print "<FONT SIZE=5>edit node</FONT><BR>\n";
 
     print "<FORM METHOD=POST ACTION=\"$scriptURL\">\n";
+
+    print "<TABLE BORDER=0><TR><TD COLSPAN=2>\n";
+    print "<FONT SIZE=5>edit node</FONT><BR>\n";
 
     print "<INPUT TYPE=\"hidden\" NAME=\"action\" VALUE=\"updateNode\">\n";
     print "<INPUT TYPE=\"hidden\" NAME=\"nodeID\" VALUE=\"$nodeID\">\n";
@@ -646,8 +643,13 @@ else {  #default, show node form
        "<INPUT TYPE=\"hidden\" NAME=\"quickRefMap\" VALUE=\"$quickRefMap\">\n";
 
     print "<TEXTAREA COLS=60 ROWS=15 NAME=\"nodeText\" WRAP=\"soft\">" .
-        "$nodeText</TEXTAREA><BR>\n";
-    print "<INPUT TYPE=submit VALUE=\"update\" NAME=\"buttonUpdate\">\n";
+        "$nodeText</TEXTAREA></TD></TR>\n";
+    print "<TR><TD ALIGN=LEFT>".
+          "<INPUT TYPE=\"checkbox\" NAME=\"autoAddToHotLinks\"" .
+          "VALUE=\"1\">add to hot links</TD>\n".
+          "<TD ALIGN=RIGHT>".
+          "<INPUT TYPE=submit VALUE=\"update\" NAME=\"buttonUpdate\">".
+          "</TD></TR></TABLE>\n";
 
     print "</FORM>\n";
     
@@ -826,6 +828,49 @@ sub removeLinkOneWay {
         writeFile( $firstLinkFile, $newLinkText );
     }
                 
+}
+
+
+
+##
+# Adds a node or external link to the hot links list.
+#
+# @param0 the node ID, or x-prefixed external link ID.
+#
+# Example A:
+# makeLink( 13);
+#
+# Example B:
+# makeLink( "x13" );
+##
+sub addToHotLinks {
+    my $nodeID = $_[0];
+    
+    # make sure node not already in list 
+    my $exists = 0;
+
+
+    # lock to protect our file update    
+    open( LOCK_FILE, "$dataDirectory/lock" ) or die;
+    flock( LOCK_FILE, 2 ) or die;
+
+    my $oldLinksText = readFileValue( "$dataDirectory/hot.links" );
+    
+    # split by lines
+    my @oldLinkIDs = split( /\n/, $oldLinksText );
+    
+    foreach my $oldID ( @oldLinkIDs ) {
+
+        if( $oldID eq $nodeID ) {
+            $exists = 1;
+        }
+    }
+
+    if( not $exists ) {
+        addToFile( "$dataDirectory/hot.links", "$nodeID\n" );
+    }
+
+    close( LOCK_FILE );
 }
 
 
@@ -1067,7 +1112,7 @@ sub printNodeLinks {
                       "<A HREF=\"$linkURL\"><FONT COLOR=#00A000>".
                       "$linkTitle</FONT></A> ".
                       "(<A HREF=\"$scriptURL?action=showNode&".
-                      "nodeID=$id\">v</A>)".
+                      "nodeID=$id\">v</A>) ".
                       "(<A HREF=\"$scriptURL?action=addToHotLinks&".
                       "nodeID=$id&showNodeID=$nodeID\">h</A>)</TD></TR>\n";
             }
