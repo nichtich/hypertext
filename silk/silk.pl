@@ -75,10 +75,9 @@ setupDataDirectory();
 # map for quick-reference link tags
 my @nodeLinkQuickReferenceTagMap = 
     ( "C", "D", "E", "F", "G", "H", "J", "K", "L", "M", "N" );
-#my @hotLinkQuickReferenceTagMap = 
-#    ( "O", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z" );
 my @hotLinkQuickReferenceTagMap = 
-    ( "O", "Q", "R" );
+    ( "O", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z" );
+
 
 
 # start processing the in-bound CGI query
