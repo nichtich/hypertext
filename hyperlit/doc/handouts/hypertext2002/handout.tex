@@ -1,0 +1,106 @@
+%
+% Modification History
+%
+% 2002-June-6   Jason Rohrer
+% Created.
+%
+
+
+\documentclass[12pt]{article}
+\usepackage{amssymb,latexsym,fullpage,epsfig,pstricks}
+
+
+\begin{document}
+
+\newcommand{\http}{{\sc http}}
+\newcommand{\url}{{\sc url}}
+
+
+% syntax: %\insertfigure{width}{file_name}{caption}{label}
+\newcommand{\insertfigure}[4] {
+	\begin{figure}[tb]
+		\begin{center}
+			\fbox{
+				\begin{minipage}{#1}
+					\includegraphics[width=\textwidth]{#2}
+				
+					\caption{#3}
+				
+					\label{#4}
+				\end{minipage}
+			} 
+		\end{center}
+	\end{figure}
+}
+
+\newlength{\oldUnitLength}
+
+% syntax: %\insertpicture{width}{height_ratio}{caption}{label}{picture_commands}
+\newcommand{\insertpicture}[5] {
+	\begin{figure}[tb]
+		\begin{center}
+			\fbox{
+				\begin{minipage}{#1}
+                    \begin{pspicture*}(0,0)(\textwidth, #2\textwidth)
+                    \psset{xunit=\textwidth}
+                    \psset{yunit=\textwidth}
+                    \psset{runit=\textwidth}                 
+                        #5
+                    \end{pspicture*}
+					\caption{#3}
+				
+					\label{#4}
+				\end{minipage}
+			} 
+		\end{center}
+	\end{figure}
+}
+
+
+
+
+
+
+\author{Jason Rohrer [rohrer@cse.ucsc.edu]}
+\date{ACM Hypertext Conference 2002}
+\title{hyperlit\\ http://hypertext.sourceforge.net/hyperlit}
+
+
+\maketitle
+
+
+\begin{abstract}
+What kind of monolithic hypertext system can be created in a single night of coding?
+\end{abstract}
+
+
+\section{What is it?}
+hyperlit is a small Java application for authoring literary hypertext.
+
+
+\section{What is it not?}
+hyperlit is similar (in a very weak sense) to Storyspace.  However, it is not as powerful as Storyspace in that it does not provide spatial views of a hypertext.  Then again, Storyspace costs \$295 and has been developed over many years, while hyperlit is free and was developed in a single night.
+
+\section{What can it do?}
+hyperlit is expressive enough to write substantial literary hypertext, as long as the final product does not require a spatial view.  For example, one could use it to author a work as substantial as ``afternoon, a story'', the flagship hypertext for Storyspace.
+
+\section{What else can it do?}
+hyperlit can export hypertext lexia as a network of HTML pages for the web.
+
+\section{Where is an example?}
+``six and a half seconds, a story'' was authored with hyperlit and has been exported for the web.  To read this story, go to
+\begin{center}
+{\tt http://jasonrohrer.n3.net}
+\end{center}
+
+\section{What do I need to run it?}
+hyperlit requires Java 1.2 or later.
+
+\section{Who is responsible?}
+hyperlit was coded in a single night by Jason Rohrer.
+
+\insertfigure{4in}{hyperlit.eps}{The hyperlit user interface.}{fig:screen}
+
+
+\end{document}
+
