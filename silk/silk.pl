@@ -1,5 +1,10 @@
 #!/usr/bin/perl -wT
 
+# use this as the first line instead to enable profiling
+#!/usr/bin/perl -wT -d:SmallProf
+
+
+
 #
 # Modification History
 #
@@ -19,8 +24,13 @@
 # Added hot link flags for each node in current node's link list.
 # Added a quick-hot-link checkbox on the edit node/link screens.
 #
-# 2004-April-4   Jason Rohrer
+# 2004-April-5   Jason Rohrer
 # Added a read-only mode.
+#
+# 2004-April-6   Jason Rohrer
+# Added support for profiling.
+# Added a profiler-suggested optimization.
+# Optimized readFileValue to slurp entire file.
 #
 
 
@@ -62,6 +72,9 @@ BEGIN {
     carpout(LOG);
 }
 
+# used if SmallProf profiling is turned on
+$DB::out_file = "$dataDirectory/profile.out";
+
 
 # end of customizable settings
 
@@ -72,6 +85,10 @@ BEGIN {
 use strict;
 use CGI;                # Object-Oriented
 use MD5;
+use Time::HiRes;
+
+
+my $startTime = Time::HiRes::time();
 
 
 # allow group to write to our data files
@@ -1137,6 +1154,12 @@ sub printNodeLinks {
     my $showEnumeration = $_[1];
 
     my @linkIDs = getNodeLinks( $nodeID );
+
+    # optimization
+    # avoid re-printing in inner loop
+    my $opt_hotLinkStartString = 
+        " (<A HREF=\"$scriptURL?action=addToHotLinks&";
+
     
     if( scalar( @linkIDs ) > 0 ) {
         print "<FORM ACTION=\"$scriptURL\" METHOD=POST>\n";
@@ -1188,8 +1211,8 @@ sub printNodeLinks {
                       "$linkTitle</FONT></A>";
                 
                 if( not $readOnlyMode ) {
-                    print " (<A HREF=\"$scriptURL?action=addToHotLinks&".
-                          "nodeID=$id&showNodeID=$nodeID\">h</A>) ".
+                    print $opt_hotLinkStartString;
+                    print "nodeID=$id&showNodeID=$nodeID\">h</A>) ".
                           "(<A HREF=\"$scriptURL?action=showNode&".
                           "nodeID=$id\">v</A>)</TD></TR>\n";
                 }
@@ -1199,8 +1222,8 @@ sub printNodeLinks {
                       "<A HREF=\"$scriptURL?action=showNode&nodeID=$id\">".
                       "$title</A>";
                 if( not $readOnlyMode ) {
-                    print " (<A HREF=\"$scriptURL?action=addToHotLinks&".
-                          "nodeID=$id&showNodeID=$nodeID\">h</A>)</TD></TR>\n";
+                    print $opt_hotLinkStartString;
+                    print "nodeID=$id&showNodeID=$nodeID\">h</A>)</TD></TR>\n";
                 }
             }
 
@@ -1451,6 +1474,12 @@ sub printPageHeader {
 # Prints the HTML footer for a page.
 ##
 sub printPageFooter {
+    my $endTime = Time::HiRes::time();
+    my $elapsedTime = $endTime - $startTime;
+    my $timeString = sprintf( "%.2f seconds", $elapsedTime );
+    
+    print "<BR>page generated in $timeString\n";
+
     print"</BODY></HTML>";
 }
 
@@ -1542,12 +1571,12 @@ sub readFileValue {
     open( FILE, "$fileName" ) or die;
     flock( FILE, 1 ) or die;
 
-    my @lineList = <FILE>;
+    # read the entire file, set the <> separator to nothing
+    local $/;
 
-    my $value = join( "", @lineList );
-
+    my $value = <FILE>;
     close FILE;
- 
+
     return $value;
 }
 
