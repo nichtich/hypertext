@@ -45,6 +45,9 @@
 # Made user options cleaner.
 # Made quickref tags color.  Added editing instructions.
 #
+# 2004-April-12   Jason Rohrer
+# Added support for inline title links.
+#
 
 
 
@@ -574,11 +577,19 @@ elsif( $action eq "updateNode" ) {
             # make sure that this node is on our link list
             makeLink( $nodeID, $linkID );
 
-            # replace quick ref tag with direct link
+            # replace quick ref tags (<D></D>) with direct links (<13></13>)
+            # allow whitespace in tag (\s*)
             $nodeText =~
-                s/<$tag>/<$linkID>/gi;
+                s/<\s*$tag\s*>/<$linkID>/gi;
             $nodeText =~
-                s/<\/$tag>/<\/$linkID>/gi;
+                s/<\s*\/\s*$tag\s*>/<\/$linkID>/gi;
+            
+            # replaced inlined quick ref title tags (<D T>) with inlined 
+            # direct title tags (<13 T>)
+            # allow extra whitespace in tag (\s* and \s+)
+            $nodeText =~
+                s/<\s*$tag\s+T\s*>/<$linkID T>/gi;
+
             
         }        
     }
@@ -643,10 +654,8 @@ elsif( $action eq "editExternalLink" or
         #untaint
         ( $linkID ) = ( $linkID =~ /(\d+)/ );
 
-        $linkTitle = 
-            readFileValue( "$dataDirectory/externalLinks/$linkID.title" );
-        $linkURL = 
-            readFileValue( "$dataDirectory/externalLinks/$linkID.url" );
+        $linkTitle = getNodeTitle( "x$linkID" );
+        $linkURL = getExternalLinkURL( $linkID );
     }
     
     if( $linkID eq "" ) {
@@ -800,11 +809,17 @@ sub printEditNodeForm {
                 $quickRefTag = $linkIndex;
             }
                 
+            # replace direct links (<13></13>) with quick ref tags (<D></D>) 
             $nodeText =~
                 s/<$link>/<$quickRefTag>/g;
             $nodeText =~
                 s/<\/$link>/<\/$quickRefTag>/g;
             
+            # replaced inlined title tags (<13 T>) with quick ref inlined 
+            # title tags (<D T>)
+            $nodeText =~
+                s/<$link T>/<$quickRefTag T>/g;
+
             $linkIndex ++;
         }
     }
@@ -929,7 +944,10 @@ sub printEditNodeForm {
           "are quick reference tags for anchoring inline links.\n".
           "You can create an inline link using one of these tags ".
           "<TT>&lt;$nodeLinkQuickReferenceTagMap[0]&gt;like this".
-          "&lt;/$nodeLinkQuickReferenceTagMap[0]&gt;</TT>.\n";    
+          "&lt;/$nodeLinkQuickReferenceTagMap[0]&gt;</TT>.\n".
+          "You can automatically insert the destination node's title as ".
+          "a link in your node like this ".
+          "<TT>&lt;$nodeLinkQuickReferenceTagMap[0] T&gt;</TT>.\n";    
     
 
     print "</TD></TR></TABLE>\n";
@@ -1170,7 +1188,7 @@ sub printNode {
     if( $nodeID eq "" ) {
         $nodeID = 0;
     }
-    
+
     my $isExternal;
     if( $nodeID =~ m/x(\d+)/ ) {
         # an external link
@@ -1189,10 +1207,8 @@ sub printNode {
     my @nodeElements;
     
     if( $isExternal ) {
-        $nodeTitle = 
-            readFileValue( "$dataDirectory/externalLinks/$nodeID.title" );
-        my $nodeURL = 
-            readFileValue( "$dataDirectory/externalLinks/$nodeID.url" );
+        $nodeTitle = getNodeTitle( "x$nodeID" );
+        my $nodeURL = getExternalLinkURL( $nodeID ); 
         
         @nodeElements = 
             ( "<A HREF=\"$nodeURL\"><FONT COLOR=#00A000>$nodeURL</FONT></A>" );
@@ -1258,20 +1274,45 @@ sub printNode {
         $paragraph =~ 
             s/<\/\d+>/<\/A>/g;
 
+        
         # search for external link start/end tags, like <x13> or </x13>, and 
-        # replace them with HTML links
-        while( $paragraph =~ m/<\/?x(\d+)>/ ) {
-            my $linkID = $1;
-            
-            my $linkURL = 
-                readFileValue( "$dataDirectory/externalLinks/$linkID.url" );
-            
-            $paragraph =~ 
-                s/<x$linkID>/<A HREF="$linkURL"><FONT COLOR=#00A000>/g;
+        # replace them with colored HTML link tags
+        # the /e regexp modifier forces evaluation of the right side, so
+        # we can call the getExternalLinkURL subroutine
+        $paragraph =~ 
+            s/<x(\d+)>/
+              "<A HREF=\"" .
+              getExternalLinkURL( $1 ) .
+              "\"><FONT COLOR=\#00A000>"/ge;
 
-            $paragraph =~ 
-                s/<\/x$linkID>/<\/FONT><\/A>/g;
-        }
+        # search for external link end tags, like </x13>, and replace
+        # them with HTML tags to end the font color and end the link,
+        # </FONT></A>
+        $paragraph =~ 
+            s/<\/x\d+>/<\/FONT><\/A>/g;
+        
+        
+        # search for inlined title links like <13 T>, and 
+        # replace them with HTML links anchored to titles.
+        # the /e regexp modifier forces evaluation of the right side, so
+        # we can call the getNodeTitle subroutine
+        $paragraph =~ 
+            s/<(\d+) T>/
+              "<A HREF=\"$scriptURL?action=showNode&nodeID=$1\">" . 
+              getNodeTitle( $1 ) . 
+              "<\/A>"/ge;
+
+        # search for inlined title external links like <x13 T>, and 
+        # replace them with colored HTML links anchored to titles.
+        # again, the /e modifier allows us to call subroutines
+        $paragraph =~ 
+            s/<x(\d+) T>/
+              "<A HREF=\"" .
+              getExternalLinkURL( $1 ) .
+              "\"><FONT COLOR=\#00A000>" .
+              getNodeTitle( "x$1" ) .
+              "<\/FONT><\/A>"/ge;
+
 
         print "$paragraph<BR><BR>\n";        
     }
@@ -1403,11 +1444,9 @@ sub printNodeLinks {
             if( $id =~ m/x(\d+)/ ) {
                 # external link
                 my $linkID = $1;
-                my $linkTitle = readFileValue( 
-                    "$dataDirectory/externalLinks/$linkID.title" );
-                my $linkURL = readFileValue( 
-                    "$dataDirectory/externalLinks/$linkID.url" );
-                
+                my $linkTitle = getNodeTitle( "x$linkID" );
+                my $linkURL = getExternalLinkURL( $linkID );
+
                 print "<TD VALIGN=MIDDLE>" .
                       "<A HREF=\"$linkURL\"><FONT COLOR=#00A000>".
                       "$linkTitle</FONT></A>";
@@ -1591,10 +1630,8 @@ sub printHotLinks {
             if( $id =~ m/x(\d+)/ ) {
                 # external link
                 my $linkID = $1;
-                my $linkTitle = readFileValue( 
-                    "$dataDirectory/externalLinks/$linkID.title" );
-                my $linkURL = readFileValue( 
-                    "$dataDirectory/externalLinks/$linkID.url" );
+                my $linkTitle = getNodeTitle( "x$linkID" );
+                my $linkURL = getExternalLinkURL( $linkID );
                 
                 print "<TD VALIGN=MIDDLE>" .
                       "<A HREF=\"$linkURL\"><FONT COLOR=#00A000>".
@@ -1753,6 +1790,27 @@ sub getNodeTitle {
 
         return $nodeTitle;
     }
+}
+
+
+
+##
+# Gets the URL of an external link.
+#
+# @param0 the link ID, without an x prefix.
+#
+# @return the link's URL.
+#
+# Example A:
+# my $url = getExternalLinkURL( "13" );
+##
+sub getExternalLinkURL {
+    my $linkID = $_[0];
+    
+    my $linkURL = 
+        readFileValue( "$dataDirectory/externalLinks/$linkID.url" );
+    
+    return $linkURL;
 }
 
 
