@@ -1,3 +1,13 @@
+<!--
+
+Modification History
+
+2004-April-18   Jason Rohrer
+Added expanded comparisons with a graph.  Did some proofreading.
+
+-->
+
+
 <HTML>
 
 <HEAD>
@@ -23,11 +33,11 @@ silk was created as a personal note-taking tool---it is perfect for recording id
 
 The core idea is that links are important.  
 A well-linked hypertext can be much more valuable than a poorly-linked hypertext.
-Links add information to hypertext:  they encode associations and relationships.
-We can include this information explicitly in the text itself, but links are more useful than pure-text references because they are much easier to follow.
+Links add information to hypertext by encoding associations and relationships.
+We can include this information explicitly in the text itself, but links are more useful than pure-text references because they are much easier to follow (a single click, as opposed to a library visit).
 In theory, linking is not a difficult task, as it follows directly from our natural inclination to notice connections between pieces of information.
 We find it easy to determine what should be linked.
-Creating and maintaining links, on the other hand, is generally more difficult.<BR>
+Creating and maintaining links, on the other hand, can be quite tedious.<BR>
 <BR>
 
 The best way to understand silk is to try it:  the <A HREF="http://hypertext.sourceforge.net/cgi-bin/silk.pl">silk Sandbox</A> is open to the public.
@@ -49,7 +59,7 @@ The best way to understand silk is to try it:  the <A HREF="http://hypertext.sou
 
 <TABLE BORDER=0 CELLSPACING=5 CELLPADDING=0>
 <TR>
-<TD VALIGN=MIDDLE>Think silk is cool?  Give us a dollar. </TD> 
+<TD VALIGN=MIDDLE>Think silk is cool?  Donate a dollar. </TD> 
 <TD VALIGN=MIDDLE><input type="image" src="https://www.paypal.com/images/x-click-but04.gif" border="0" name="submit" alt="Make payments with PayPal - it's fast, free and secure!" ALIGN=MIDDLE></TD>
 <TD VALIGN=MIDDLE>
 [ <!--#include virtual="/silk/donationData/donationCount.html" --> donations totalling $<!--#include virtual="/silk/donationData/overallSum.html" --> ]</TD>
@@ -126,40 +136,42 @@ Of course, silk pales in many ways compared to the feature-rich Tinderbox, but w
 More fair comparissons can be drawn between silk and other Web-based hypertext systems.
 First, consider the Web itself.
 To create a Web link, you first need to obtain the URL of the destination page---URLs are often complicated enough to make memorization impractical, so a copy-and-paste operation is usually necessary.
-For the sake of a simple example, suppose our destination URL is <TT>http://www.google.com</TT>.
+For the sake of a simple example, suppose our destination URL is (<TT>http://www.google.com</TT>).
 Because all Web links must be anchored inline around text, we must select appropriate text in our source page for the link.
-If no appropriate text exists, we must add text to our document to serve as the link anchor, for example, <A HREF="http://www.google.com">click here to visit Google</A>.
+If no appropriate text exists, we must add text to our document to serve as the link anchor (for example, <A HREF="http://www.google.com">click here to visit Google</A>).
 Finally, we must type the HTML linking syntax (easy to memorize, with practice, but always a pain to type):
 <CENTER><TT>
 &lt;A HREF="http://www.google.com"&gt;click here to visit Google&lt;/A&gt;
 </TT></CENTER>
-Of course, after going through these steps, we have only created a unidirectional link:  the multi-owner architecture of the web makes automatic bidirectional linking impossible (and even if we own the destination page, we would have to manually create a back link by repeating these steps).<BR>
+Of course, after going through these steps, we have only created a unidirectional link:  the multi-owner architecture of the web makes automatic bidirectional linking impossible.
+Even if we own the destination page, we would have to manually create a back link by repeating these steps.<BR>
 <BR>
 
 Linking is not the only operation that is cumbersome on the Web:  page creation, in general, can be painful.
 <A HREF="http://c2.com/cgi/wiki?WikiWikiWeb">Wikis</A> were developed in response to this problem, and they focus on making web maintenance quick and easy.
-Part of the Wiki package is simplified linking:  creating a link is as easy as typing the destination page title in camel case (for example, a SamplePageTitle).
+Part of the Wiki package is simplified linking:  creating an internal link is as easy as typing the destination page's title in camel case (for example, a SamplePageTitle).
 For people used to the cumbersome HTML linking syntax, this new syntax was a breath of fresh air.
 However, camel case linking, or any title-based linking scheme is not free of encumbrances.
 First, you have to know the title of the destination page before you can link to it (perhaps easier to remember than a URL, but still easy to misspell).
-Second, node titles must be set when the node is created and never changed:  changing a node's title would effectively break all links that point to the node.
+Second, node titles must be set when a node is created and never changed:  changing a node's title would effectively break all links that point to the node.
 Third, links still must be anchored inline, and furthermore, the anchor text is forced by the linking syntax.
 If SamplePageTitle does not fit well into the flow of your text, you cannot make a link.
 Successors to the original Wiki system allow custom link anchor text but introduce semi-cumbersome syntax to support it (though nothing can compare to HTML's linking syntax).
-Finally, despite the fact that Wikis are self-contained systems, their links are unidirectional.<BR>
+Finally, despite the fact that Wikis are self-contained systems, their links are unidirectional, probably because all links must be anchored, and it is difficult to automatically create appropriate anchors for back links.
+Though it is possible to search for all nodes that link to a given node, this kind of link search does not provide true bidirectionality.<BR>
 <BR>
 
 Compared to linking in a Wiki, linking in silk is much easier.
 First, you never need to know a node identifier (for example, a title) to create a silk link:  you simply add the destination node to the list of hot links.
 Since links do not depend on node titles, you can change the title of any node at any time, and since all links are bidirectional, link lists always show the current titles of the nodes they contain.
 Second, anchoring links inline is optional, so links can be quickly created without fitting them into the textual flow of the source or destination node.
-On the other hand, Wikis focus on quick text formatting, with easy syntax for font styles, lists, and indentation---silk focuses exclusively on linking and does not support formatting text.<BR>
+On the other hand, Wikis focus on quick text formatting, with easy syntax for font styles, lists, and indentation---silk focuses exclusively on linking and does not provide shortcuts for text formatting.<BR>
 <BR>
 
 Another interesting Web-based hypertext system is <A HREF="http://www.everything2.com/">Everything2</A>.
-Links can be created explicitly in Everything2 nodes with title-based syntax, similar to that of a Wiki, with brackets around phrases, <TT>[like this]</TT>.
+Links can be created explicitly in Everything2 nodes with title-based syntax, similar to that of a Wiki, using brackets around phrases, <TT>[like this]</TT>.
 Everything2 adds a unique twist:  clicking on a link for nonexistent node (for example, if there is no node called "like this") performs a search for the link words.
-In addition to explicit link creation, Everything2 creates additional links between nodes automatically based on user traversal patterns---these automatic connections are called <I>soft links</I>.
+Along with supporting manual link creation, Everything2 creates additional links between nodes automatically based on user traversal patterns---these automatic connections are called <I>soft links</I>.
 For example, if a user leaves node <I>A</I> by running a search to find node <I>B</I>, soft links are created from <I>A</I> to <I>B</I> and back from <I>B</I> to <I>A</I>.
 These soft links are sorted by popularity and displayed at the bottom of each node.
 Because soft links are sorted and potentially dropped according to popularity, and the popularity scale can vary wildly between linked nodes, soft links are not necessarily bidirectional.
@@ -169,25 +181,32 @@ Soft links in Everything2 can best be described as <I>semi-bidirectional</I>.<BR
 
 Despite its various linking innovations, Everything2 bears many of the same obstacles to linking that Wikis do.
 Title-based linking requires knowing the title of the target node and typing it correctly (a point emphasized throughout the Everything2 documentation:  the mantra seems to be, "Check your links for typos.").
-A partial solution to this problem is Everything2's fall-back to searching for unknown link words, but it is not a functional fix (linking to Potsmaster by accident may produce amusing search results, but the intended connection is still lost).
-Nothing could be "easier" than an automatic link creation mechanism like soft links, and they work quickly to create well-linked nodes with no explicit effort on the part of the users.
-However, they do not reduce the friction of intentional linking at all, and they often capture inappropriate, unintentional associations.
+A partial solution to this problem is Everything2's fall-back to searching for unknown link words, but this kind of search adds little utility to a mistyped link (though linking to Potsmaster by accident may produce amusing search results, the intended connection to Postmaster is still lost).
+Nothing could be "easier" than an automatic link creation mechanism like soft links, and they work quickly to create well-linked nodes with no extra effort on the part of the users.
+However, soft links do not reduce the friction of intentional linking at all, and they often capture inappropriate, unintentional associations.
 For example, while you read a node about the Postmaster, the phone rings and a conversation about a broken air conditioner ensues.
-After the phone call, you perform a search for "air conditioner repair," accidentally creating a useless soft link.
+After the phone call, you perform a search for "air conditioner repair," accidentally creating a useless soft link on the Postmaster node.
 
 <H1>can you give a quantitative comparison?</H1>
-Perhaps we should be counting the mouse clicks and keystrokes (user actions) needed to create a link.<BR>
+We can count the mouse clicks and keystrokes (user actions) needed to create a link.<BR>
 <BR>
-To be fair, we will only count user actions for unidirectional links, since silk makes bidirectional links for free and has an unfair advantage.  We can construct a linking scenario for our comparison.
+To be fair, we will only count user actions for unidirectional links, since silk makes bidirectional links for free and has an unfair advantage.  
+We will use the following linking scenario for our comparison.
 Suppose we have a text page called <I>Home Page</I> and another page called <I>Test Page</I>, and suppose that we already have both pages in front of us (so we will not count actions needed to locate the pages in the first place).
 We want to create a link from <I>Home Page</I> to <I>Test Page</I>.
 For the Web portion of the comparison, we will assume that <I>Test Page</I> has a rather short URL, <I>http://www.test.com/page.html</I>, and we will give the Web a generous handicap:  we will allow cut-and-paste operations instead of forcing the URL to be typed out.
-We will also ignore the user actions involved in accessing pages or saving changes (mouse clicks needed to switch windows or move between pages, operations needed to upload a page to a Web server, etc.).<BR>
+We will also ignore the user actions involved in accessing pages or saving changes (mouse clicks needed to switch windows or move between pages; operations needed to upload a page to a Web server; etc.).<BR>
 <BR>
+Some of the operations involved in link creation are one-time actions that do not need to be repeated when creating additional links to the same document.
+In our comparison, we count the number of user actions needed to create a first link, create a second link, and create additional links.<BR>
+<BR> 
 
-For the Web, creating the link would require the following operations:
+
+For the <B>Web</B>, creating links would require the following operations:
 <CENTER>
 <TABLE BORDER=1 WIDTH=75%>
+
+<TR><TD COLSPAN=2 ALIGN=CENTER><I>Creating the first link</I></TD></TR>
 <TR><TD>copy <I>Test Page</I>'s URL</TD><TD>1 keystroke</TD></TR>
 <TR><TD>position the cursor at the start of the anchor text in <I>Home Page</I></TD><TD>1 mouse click</TD></TR>
 <TR><TD>type <TT>&lt;A HREF="</TT> <!-- "--></TD><TD>9 keystrokes</TD></TR>
@@ -196,45 +215,111 @@ For the Web, creating the link would require the following operations:
 <TR><TD>position the cursor at the end of the anchor text</TD><TD>1 mouse click</TD></TR>
 <TR><TD>type <TT>&lt;/A&gt;</TT></TD><TD>4 keystrokes</TD></TR>
 <TR><TD><B>total</B></TD><TD><B>19 user actions</B></TD></TR>
-</TABLE>
-</CENTER><BR>
 
-For a Wiki, creating the link would require the following operations:
+<TR><TD COLSPAN=2 ALIGN=CENTER><I>Creating a second link</I></TD></TR>
+<TR><TD>select all of <TT>&lt;A HREF= "http://www.test.com/page.html"&gt;</TT></TD><TD>2 mouse operations</TD></TR>
+<TR><TD>copy the selected link start syntax<TD>1 keystroke</TD></TR>
+<TR><TD>position the cursor at the start of the anchor text for the second link</TD><TD>1 mouse click</TD></TR>
+<TR><TD>past the link start syntax</TD><TD>1 keystroke</TD></TR>
+<TR><TD>position the cursor at the end of the anchor text</TD><TD>1 mouse click</TD></TR>
+<TR><TD>type <TT>&lt;/A&gt;</TT></TD><TD>4 keystrokes</TD></TR>
+<TR><TD><B>total</B></TD><TD><B>10 user actions</B></TD></TR>
+
+<TR><TD COLSPAN=2 ALIGN=CENTER><I>Creating additional links</I></TD></TR>
+<TR><TD>position the cursor at the start of the anchor text for the link</TD><TD>1 mouse click</TD></TR>
+<TR><TD>past the link start syntax</TD><TD>1 keystroke</TD></TR>
+<TR><TD>position the cursor at the end of the anchor text</TD><TD>1 mouse click</TD></TR>
+<TR><TD>type <TT>&lt;/A&gt;</TT></TD><TD>4 keystrokes</TD></TR>
+<TR><TD><B>total</B></TD><TD><B>7 user actions</B></TD></TR>
+
+</TABLE>
+</CENTER><BR><BR>
+
+
+For a <B>Wiki</B>, creating links would require the following operations:
 <CENTER>
 <TABLE BORDER=1 WIDTH=75%>
+
+<TR><TD COLSPAN=2 ALIGN=CENTER><I>Creating the first link</I></TD></TR>
 <TR><TD>position the cursor in the text of <I>Home Page</I></TD><TD>1 mouse click</TD></TR>
 <TR><TD>type <TT>TestPage</TT></TD><TD>8 keystrokes</TD></TR>
 <TR><TD><B>total</B></TD><TD><B>9 user actions</B></TD></TR>
-</TABLE>
-</CENTER><BR>
 
-For Everything2, creating the link would require the following operations:
+<TR><TD COLSPAN=2 ALIGN=CENTER><I>Creating a second link</I></TD></TR>
+<TR><TD>select all of <TT>TestPage</TT></TD><TD>2 mouse operations</TD></TR>
+<TR><TD>copy <TT>TestPage</TT><TD>1 keystroke</TD></TR>
+<TR><TD>position the cursor for the second link</TD><TD>1 mouse click</TD></TR>
+<TR><TD>paste <TT>TestPage</TT><TD>1 keystroke</TD></TR>
+<TR><TD><B>total</B></TD><TD><B>5 user actions</B></TD></TR>
+
+<TR><TD COLSPAN=2 ALIGN=CENTER><I>Creating additional links</I></TD></TR>
+<TR><TD>position the cursor for the link</TD><TD>1 mouse click</TD></TR>
+<TR><TD>paste <TT>TestPage</TT><TD>1 keystroke</TD></TR>
+<TR><TD><B>total</B></TD><TD><B>2 user actions</B></TD></TR>
+
+</TABLE>
+</CENTER><BR><BR>
+
+For <B>Everything2</B>, creating links would require the following operations:
 <CENTER>
 <TABLE BORDER=1 WIDTH=75%>
+
+<TR><TD COLSPAN=2 ALIGN=CENTER><I>Creating the first link</I></TD></TR>
 <TR><TD>position the cursor in the text of <I>Home Page</I></TD><TD>1 mouse click</TD></TR>
 <TR><TD>type <TT>[Test Page]</TT></TD><TD>10 keystrokes</TD></TR>
 <TR><TD><B>total</B></TD><TD><B>11 user actions</B></TD></TR>
-</TABLE>
-</CENTER><BR>
 
-For Tinderbox, creating the link would require the following operations:
+<TR><TD COLSPAN=2 ALIGN=CENTER><I>Creating a second link</I></TD></TR>
+<TR><TD>select all of <TT>[TestPage]</TT></TD><TD>2 mouse operations</TD></TR>
+<TR><TD>copy <TT>[TestPage]</TT><TD>1 keystroke</TD></TR>
+<TR><TD>position the cursor for the second link</TD><TD>1 mouse click</TD></TR>
+<TR><TD>paste <TT>[TestPage]</TT><TD>1 keystroke</TD></TR>
+<TR><TD><B>total</B></TD><TD><B>5 user actions</B></TD></TR>
+
+<TR><TD COLSPAN=2 ALIGN=CENTER><I>Creating additional links</I></TD></TR>
+<TR><TD>position the cursor for the link</TD><TD>1 mouse click</TD></TR>
+<TR><TD>paste <TT>[TestPage]</TT><TD>1 keystroke</TD></TR>
+<TR><TD><B>total</B></TD><TD><B>2 user actions</B></TD></TR>
+
+</TABLE>
+</CENTER><BR><BR>
+
+
+For <B>Tinderbox</B>, creating links would require the following operations:
 <CENTER>
 <TABLE BORDER=1 WIDTH=75%>
-<TR><TD>click the link start widget on <I>Home Page</I></TD><TD>1 mouse click</TD></TR>
+
+<TR><TD COLSPAN=2 ALIGN=CENTER><I>Creating the first link, a second link, or additional links</I></TD></TR>
+<TR><TD>click the link start widget on <I>Home Page</I> (or on another node)</TD><TD>1 mouse click</TD></TR>
 <TR><TD>drag the link arrow to <I>Test Page</I> and release the mouse</TD><TD>1 mouse drag/release</TD></TR>
 <TR><TD>click the "OK" button to dismiss the link dialog box</TD><TD>1 mouse click</TD></TR>
 <TR><TD><B>total</B></TD><TD><B>3 user actions</B></TD></TR>
-</TABLE>
-</CENTER><BR>
 
-For silk, creating the link would require the following operations:
+</TABLE>
+</CENTER><BR><BR>
+
+
+For <B>silk</B>, creating links would require the following operations:
 <CENTER>
 <TABLE BORDER=1 WIDTH=75%>
+
+<TR><TD COLSPAN=2 ALIGN=CENTER><I>Creating the first link</I></TD></TR>
 <TR><TD>click [hot link] on <I>Test Page</I> to add it to the hot link list</TD><TD>1 mouse click</TD></TR>
 <TR><TD>from <I>Home Page</I>, click [+] next to <I>Test Page</I> in the hot link list</TD><TD>1 mouse click</TD></TR>
 <TR><TD><B>total</B></TD><TD><B>2 user actions</B></TD></TR>
+
+<TR><TD COLSPAN=2 ALIGN=CENTER><I>Creating a second link or additional links</I></TD></TR>
+<TR><TD>from the page to link, click [+] next to <I>Test Page</I> in the hot link list</TD><TD>1 mouse click</TD></TR>
+<TR><TD><B>total</B></TD><TD><B>1 user action</B></TD></TR>
+
 </TABLE>
-</CENTER>
+</CENTER><BR><BR>
+
+The following graph summarizes these results, showing how the total number of user actions scales as additional links are created.
+
+<CENTER>
+<IMG SRC="images/userActionsGraph.png" WIDTH=400 HEIGHT=279>
+</CENTER> 
 
 
 
