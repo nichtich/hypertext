@@ -33,6 +33,9 @@
 # Optimized readFileValue to slurp entire file.
 # Optimized getNodeTitle to only read the first line of the file.
 #
+# 2004-April-8   Jason Rohrer
+# Added support for getting a backup tarball.
+#
 
 
 
@@ -43,13 +46,17 @@
 # you should also edit the $dataDirectory variable for the error log below
 my $dataDirectory = "../cgi-data/silk";
 
+# the name of the data directory.
+# in other words, the last step in the data directory path
+my $dataDirectoryName = "silk";
+
 # the external URL for the silk script
 my $scriptURL = "http://localhost/cgi-bin/silk.pl";
 
 # set to 1 to require password, or 0 to allow public access
 my $requirePassword = 0;
 
-# If a password is required, the password will be set the first
+# If a password is required, the password will be requested and set the first
 #   time the silk script is run.  The MD5 hash of the password is stored
 #   in the "password.md5" file in the data directory.
 # To reset the password (so that the script asks for it again)
@@ -63,23 +70,31 @@ my $requirePassword = 0;
 my $allowReadOnlyAccessWithoutPassword = 0;
 
 
+# used for generating data tarballs (for backup purposes)
+my $tarPath = "/bin/tar";
+my $gzipPath = "/bin/gzip";
+
 
 # setup a local error log
 BEGIN {
-    my $dataDirectory = "../cgi-data/silk";
-    use CGI::Carp qw(carpout);
-    open(LOG, ">>$dataDirectory/errors.log") or
-        die("Unable to open $dataDirectory/errors.log: $!\n");
-    carpout(LOG);
-}
 
-# used if SmallProf profiling is turned on
-$DB::out_file = "$dataDirectory/profile.out";
+    # edit this to match $dataDirectory from above
+    my $dataDirectory = "../cgi-data/silk";
+
+    use CGI::Carp qw( carpout );
+    open( LOG, ">>$dataDirectory/errors.log" ) or
+        die( "Unable to open $dataDirectory/errors.log: $!\n" );
+    carpout( LOG );
+}
 
 
 # end of customizable settings
 
 
+
+
+# used if SmallProf profiling is turned on
+$DB::out_file = "$dataDirectory/profile.out";
 
 
 
@@ -182,7 +197,12 @@ if( $requirePassword ) {
 
 
 # set the password cookie if we have a correct password
-if( $passwordCorrect ) {
+# and generate the HTTP header
+
+# used below
+my $tarballContentDisposition = "attachment; filename=\"silk_backup.tar.gz\"";
+
+if( $requirePassword and $passwordCorrect ) {
     my $cookieToSet;
     
     if( $action eq "logout" ) {
@@ -195,13 +215,46 @@ if( $passwordCorrect ) {
                                           -value=>"$password",
                                           -expires=>"+1h" );
     }
-    print $cgiQuery->header( -type=>'text/html',
-                             -expires=>'now',
-                             -Cache_control=>'no-cache',
-                             -cookie=>[ $cookieToSet ] );
+
+    if( $action eq "getDataTarball" ) {
+        print $cgiQuery->header( 
+                           -type=>'application-x/gzip',
+                           -expires=>'now',
+                           -Cache_control=>'no-cache',
+                           -Content_Ddisposition=>"$tarballContentDisposition",
+                           -cookie=>[ $cookieToSet ] );
+    }
+    else {
+        print $cgiQuery->header( -type=>'text/html',
+                                 -expires=>'now',
+                                 -Cache_control=>'no-cache',
+                                 -cookie=>[ $cookieToSet ] );
+    }
+}
+elsif( not $requirePassword
+       or $allowReadOnlyAccessWithoutPassword ) {
+    # password not required or
+    # read only access allowed
+
+    # allow tarball fetching
+
+    if( $action eq "getDataTarball" ) {
+        print $cgiQuery->header( 
+                          -type=>'application-x/gzip', 
+                          -expires=>'now',
+                          -Cache_control=>'no-cache',
+                          -Content_Disposition=>"$tarballContentDisposition" );
+    }
+    else {
+        print $cgiQuery->header( -type=>'text/html', 
+                                 -expires=>'now',
+                                 -Cache_control=>'no-cache' );
+    }
 }
 else {
-    print $cgiQuery->header( -type=>'text/html', -expires=>'now',
+    # password required, but not correct
+    print $cgiQuery->header( -type=>'text/html', 
+                             -expires=>'now',
                              -Cache_control=>'no-cache' );
 }
 
@@ -271,6 +324,22 @@ elsif( $action eq "showNode"
     }
 
     printNode( $nodeID );
+}
+elsif( $action eq "getDataTarball" ) {
+    
+    my $oldPath = $ENV{ "PATH" };
+    $ENV{ "PATH" } = "";
+
+    open( TARBALL_READER, 
+          "cd $dataDirectory/..; $tarPath cf - $dataDirectoryName | ".
+          "$gzipPath -f |" );
+
+    while( <TARBALL_READER> ) {
+        print "$_";
+    }
+    close( TARBALL_READER );
+
+    $ENV{ "PATH" } = $oldPath;
 }
 elsif( $action eq "makeLink" ) {
     my $firstNodeID = $cgiQuery->param( "firstNodeID" );
@@ -1445,7 +1514,8 @@ sub printPageHeader {
     
     print "<TABLE BORDER=0 CELLPADDING=5 CELLSPACING=0><TR>";
     print "<TD><FONT SIZE=7>silk</FONT></TD>\n";
-    if( not $readOnlyMode ) {
+    if( not $requirePassword 
+        or ( $requirePassword and $passwordCorrect ) ) {
         print "<TD>-<A HREF=\"$scriptURL?action=newNode\">new node</A><BR>\n";
         print "-<A HREF=\"$scriptURL?action=newExternalLink\">" . 
             "new external link</A></TD>\n";
@@ -1479,7 +1549,17 @@ sub printPageFooter {
     my $elapsedTime = $endTime - $startTime;
     my $timeString = sprintf( "%.2f seconds", $elapsedTime );
     
-    print "<BR>page generated in $timeString\n";
+    print "<BR><TABLE BORDER=0 WIDTH=100%><TR>\n";
+
+    print "<TD>page generated in $timeString</TD>\n";
+
+    if( not $requirePassword 
+        or ( $requirePassword and $passwordCorrect ) ) {
+        print "<TD ALIGN=RIGHT><A HREF=\"$scriptURL?action=getDataTarball\">".
+              "get backup tarball</A></TD>\n";
+    }
+
+    print "</TR></TABLE>\n";
 
     print"</BODY></HTML>";
 }
