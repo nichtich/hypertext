@@ -90,7 +90,7 @@ Also like internal nodes, external links can be anchored to text regions using q
 A silk script can be configured to allow backup operations.
 Scripts that allow backups show two extra links in the bottom right corner of each page:  "get backup tarball" and "restore from tarball".
 A tarball is a data archive that has first been assembled by the <B>tar</B> program and then compressed by the <B>gzip</B> program.
-These programs are available on almost every Unix-like platform, and many Windows-based Zip utilties (such as WinZip) can extract data from tarballs.<BR>
+These programs are available on almost every Unix-like platform, and many Windows-based Zip utilities (such as WinZip) can extract data from tarballs.<BR>
 <BR>
 
 In any event, you do not need a tarball extractor to back up your silk data.
