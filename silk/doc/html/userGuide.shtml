@@ -1,3 +1,13 @@
+<!--
+
+Modification History
+
+2004-April-22   Jason Rohrer
+Proofread and spellchecked again.
+
+-->
+
+
 <HTML>
 
 <HEAD>
@@ -24,51 +34,52 @@ Clicking [edit] displays the edit form for a given node.
 
 
 <H2>hot links</H2>
-Hot links are partial links:  bidirectional links with only one endpoint specified.
+Hot links are partial links:  they are bidirectional links with only one endpoint specified.
 Hot links are waiting to be completed with a second node as an endpoint.
 To create a hot link, click [hot link] next to a node's title.<BR>
 <BR>
 
-The hot link list displays the nodes that have been hot linked.
+The hot links list displays the nodes that have been hot linked.
 Nodes can be removed from this list by clicking checkboxes and then clicking the "remove marked" button.
 The [+] next to each node in the list is used to complete a link.
-While viewing a node, clicking the [+] next to another node in the hot link list will form a complete, bidirectional link between the two nodes.<BR>
+While viewing a node, clicking the [+] next to another node in the hot links list will form a complete, bidirectional link between the two nodes.<BR>
 <BR>
 
-For example, while viewing node <I>A</I>, you might click [hot link], which would add <I>A</I> to the hot link list.
-Later on, while viewing node <I>B</I>, you might click the [+] next to node <I>A</I> in the hot link list, which would create a link between <I>A</I> and <I>B</I>.<BR>
+For example, while viewing node <I>A</I>, you might click [hot link], which would add <I>A</I> to the hot links list.
+Later on, while viewing node <I>B</I>, you might click the [+] next to node <I>A</I> in the hot links list, which would create a link between <I>A</I> and <I>B</I>.<BR>
 <BR>
 
-Nodes remain in the hot link list until they have been explicitly removed---they can be used over and over to create bidirectional links.
+Nodes remain in the hot links list until they have been explicitly removed---they can be used over and over to create bidirectional links.
 
 
 <H2>this node's links</H2>
 The "this node's links" list displays all of the nodes that are linked to the current node.
-Each node listed here has a (h) next to it, which can be used to quickly add a node to the hot link list without viewing it.
-As with the hot link list, nodes can be removed from this list by clicking checkboxes and then clicking the "remove marked" button.
+Each node listed here has a (h) next to it, which can be used to quickly add the node to the hot links list without viewing it.
+As with the hot links list, nodes can be removed from this list by clicking checkboxes and then clicking the "remove marked" button.
 Keep in mind that links are bidirectional:  removing a link from node <I>A</I> to node <I>B</I> will also remove the corresponding link from node <I>B</I> back to node <I>A</I>.
 
 
 <H2>anchored links</H2>
-Nodes that appear in the "this node's links" are simply attached to the node itself and do not need to be anchored to a particular text region in the node.
+Nodes that appear in the "this node's links" are simply attached to the node itself and do not need to be anchored to particular text regions in the node.
 However, links can be easily anchored to particular text regions (which creates links that <A HREF="http://www.google.com">look like this</A>).<BR>
 <BR>
 
 While viewing the edit form for a node (after clicking [edit]), red quick reference tags (<FONT COLOR=#FF0000>c</FONT>, <FONT COLOR=#FF0000>d</FONT>, <FONT COLOR=#FF0000>e</FONT>, etc.) appear next to each node in both the "this node's links" and hot links lists.
 These tags can be used to add anchored links to the node's text by placing <TT>&lt;c&gt;</TT> and <TT>&lt;/c&gt;</TT> tags around the desired text region, where <TT>c</TT> is the quick reference tag for the node you want to link to.
 You can automatically insert the destination node's title as a link in your node with a <TT>&lt;c t&gt;</TT> tag.
-Creating an anchored link to a node in the hot link list that is not already in the "this node's links" list will complete the hot link with the current node and add the other node to "this node's links".<BR>
+Creating an anchored link to a node in the hot links list that is not already in the "this node's links" list will complete the hot link with the current node and add the other node to "this node's links".<BR>
 <BR>
 
-For example, suppose you have a node called <I>Test Node</I> in the hot link list.
+For example, suppose you have a node called <I>Test Node</I> in the hot links list.
 While editing another node, you see that <I>Test Node</I> has <FONT COLOR=#FF0000>r</FONT> as its quick reference tag.
 You can create an anchored link to <I>Test Node</I> with tags <TT>&lt;r&gt;</TT>like this<TT>&lt;/r&gt;</TT>, which would create a link in your text that looks <A HREF="http://www.google.com">like this</A>.
 You can also create an anchored link that automatically inserts <I>Test Node</I>'s title in your text.
-Inserting <TT>&lt;r t&gt;</TT> would produce a link that looks like this: <A HREF="http://www.google.com">Test Node</A>.<BR>
+Inserting <TT>&lt;r t&gt;</TT> would produce a link that looks like this: <A HREF="http://www.google.com">Test Node</A>.
+Either operation would automatically complete the hot link, adding <I>Test Node</I> to "this node's links".<BR>
 <BR>
 
 Since title-anchored links are stored in an abstract form by silk, they track title changes automatically.
-In the above example, if you then edited <I>Test Node</I> and changed its title to <I>The Perfect Node</I>, your title-anchored link would automatically change to look like this:  <A HREF="http://www.google.com">The Perfect Node</A>.
+In the above example, if you were to edit <I>Test Node</I> and change its title to <I>The Perfect Node</I>, your title-anchored link would automatically change to look like this:  <A HREF="http://www.google.com">The Perfect Node</A>.
 
 
 <H2>external links</H2>
@@ -78,10 +89,10 @@ External links are displayed with a green font to differentiate them from intern
 Clicking on a green external link will take you to an external web page.<BR>
 <BR>
 
-External links are first-class objects in silk:  they can be added to the hot link list and linked to silk nodes with bidirectional links.
+External links are first-class objects in silk:  they can be added to the hot links list and linked to silk nodes with bidirectional links.
 Every external link has two parts, a title and a URL, and both can be edited repeatedly after the link is created.
 Whenever an external link is listed in in a link list, it is accompanied by a (v) that can be used to view and edit the link's attributes (as opposed to following the link out to the external web).
-Just link internal nodes, external links track a list of nodes that link to them, so it is easy to determine which nodes use a given external link.
+Just like internal nodes, external links track a list of nodes that link to them, so it is easy to determine which nodes use a given external link.
 Also like internal nodes, external links can be anchored to text regions using quick reference tags.
  
 
@@ -89,6 +100,7 @@ Also like internal nodes, external links can be anchored to text regions using q
 
 A silk script can be configured to allow backup operations.
 Scripts that allow backups show two extra links in the bottom right corner of each page:  "get backup tarball" and "restore from tarball".
+These links manage backups for the entire silk web, not just for single pages.
 A tarball is a data archive that has first been assembled by the <B>tar</B> program and then compressed by the <B>gzip</B> program.
 These programs are available on almost every Unix-like platform, and many Windows-based Zip utilities (such as WinZip) can extract data from tarballs.<BR>
 <BR>
