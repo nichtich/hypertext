@@ -6,6 +6,9 @@ Modification History
 Added expanded comparisons with a graph.  Did some proofreading.
 Added the download link for v0.1
 
+2004-April-22   Jason Rohrer
+Final proofreading and spellchecking.
+
 -->
 
 
@@ -174,19 +177,19 @@ On the other hand, Wikis focus on quick text formatting, with easy syntax for fo
 <!-- PROOFREADING got here -->
 
 Another interesting Web-based hypertext system is <A HREF="http://www.everything2.com/">Everything2</A>.
-Links can be created explicitly in Everything2 nodes with title-based syntax, similar to that of a Wiki, using brackets around phrases, <TT>[like this]</TT>.
+Links can be created explicitly in Everything2 nodes with a title-based syntax, similar to that of a Wiki, by using brackets around phrases <TT>[like this]</TT>.
 Everything2 adds a unique twist:  clicking on a link for nonexistent node (for example, if there is no node called "like this") performs a search for the link words.
 Along with supporting manual link creation, Everything2 creates additional links between nodes automatically based on user traversal patterns---these automatic connections are called <I>soft links</I>.
 For example, if a user leaves node <I>A</I> by running a search to find node <I>B</I>, soft links are created from <I>A</I> to <I>B</I> and back from <I>B</I> to <I>A</I>.
 These soft links are sorted by popularity and displayed at the bottom of each node.
 Because soft links are sorted and potentially dropped according to popularity, and the popularity scale can vary wildly between linked nodes, soft links are not necessarily bidirectional.
-For example, though a node about the Postmaster may have a single soft link to a node about Mickey Mouse, the Mickey Mouse node's soft link list may be full of popular soft links (the limit seems to be 48 links) and have no room for a link back to the Postmaster node.
-Soft links in Everything2 can best be described as <I>semi-bidirectional</I>.<BR>
+For example, though a node about the Postmaster may have only one soft link, with that link pointing to a node about Mickey Mouse, the Mickey Mouse node's soft link list may be full of popular soft links (the limit seems to be 48 links) and have no room for a link back to the Postmaster node.
+Thus, soft links in Everything2 can best be described as <I>semi-bidirectional</I>.<BR>
 <BR>
 
 Despite its various linking innovations, Everything2 bears many of the same obstacles to linking that Wikis do.
 Title-based linking requires knowing the title of the target node and typing it correctly (a point emphasized throughout the Everything2 documentation:  the mantra seems to be, "Check your links for typos.").
-A partial solution to this problem is Everything2's fall-back to searching for unknown link words, but this kind of search adds little utility to a mistyped link (though linking to Potsmaster by accident may produce amusing search results, the intended connection to Postmaster is still lost).
+A partial solution to this problem is Everything2's fall-back to searching for unknown link words, but this kind of search adds little utility to a mistyped link (though linking to <I>Potsmaster</I> by accident may produce amusing search results, the intended connection to Postmaster is still lost).
 Nothing could be "easier" than an automatic link creation mechanism like soft links, and they work quickly to create well-linked nodes with no extra effort on the part of the users.
 However, soft links do not reduce the friction of intentional linking at all, and they often capture inappropriate, unintentional associations.
 For example, while you read a node about the Postmaster, the phone rings and a conversation about a broken air conditioner ensues.
@@ -197,7 +200,7 @@ We can count the mouse clicks and keystrokes (user actions) needed to create a l
 <BR>
 To be fair, we will only count user actions for unidirectional links, since silk makes bidirectional links for free and has an unfair advantage.  
 We will use the following linking scenario for our comparison.
-Suppose we have a text page called <I>Home Page</I> and another page called <I>Test Page</I>, and suppose that we already have both pages in front of us (so we will not count actions needed to locate the pages in the first place).
+Suppose we have a page called <I>Home Page</I> and another page called <I>Test Page</I>, and suppose that we already have both pages in front of us (so we will not count actions needed to locate the pages in the first place).
 We want to create a link from <I>Home Page</I> to <I>Test Page</I>.
 For the Web portion of the comparison, we will assume that <I>Test Page</I> has a rather short URL, <I>http://www.test.com/page.html</I>, and we will give the Web a generous handicap:  we will allow cut-and-paste operations instead of forcing the URL to be typed out.
 We will also ignore the user actions involved in accessing pages or saving changes (mouse clicks needed to switch windows or move between pages; operations needed to upload a page to a Web server; etc.).<BR>
