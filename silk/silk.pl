@@ -1,7 +1,6 @@
 #!/usr/bin/perl -wT
 
-# use this as the first line instead to enable profiling
-#!/usr/bin/perl -wT -d:SmallProf
+
 
 
 
@@ -41,6 +40,9 @@
 # 2004-April-9   Jason Rohrer
 # Made tarball processing code cleaner.
 # Added an ever-present link to the start node.
+# Removed unneeded temp directory setting.
+# Removed use of Time:HiRes to reduce dependencies.
+# Removed settings for SmallProf.
 #
 
 
@@ -55,12 +57,6 @@ my $dataDirectory = "../cgi-data/silk";
 # the name of the data directory.
 # in other words, the last step in the data directory path
 my $dataDirectoryName = "silk";
-
-# directory where this script can write temporary files.
-# must be different from $dataDirectory, and cannot be a subdirectory of
-# $dataDirectory ($tempDirectory is used when restoring the $dataDirectory
-# from a tarball).
-my $tempDirectory = "/tmp";
 
 # the external URL for the silk script
 my $scriptURL = "http://localhost/cgi-bin/silk.pl";
@@ -104,19 +100,10 @@ BEGIN {
 
 
 
-
-# used if SmallProf profiling is turned on
-$DB::out_file = "$dataDirectory/profile.out";
-
-
-
 use strict;
 use CGI;                # Object-Oriented
 use MD5;
-use Time::HiRes;
 
-
-my $startTime = Time::HiRes::time();
 
 
 # allow group to write to our data files
@@ -135,7 +122,7 @@ my @hotLinkQuickReferenceTagMap =
 
 
 
-# start processing the in-bound CGI query
+# start processing the inbound CGI query
 my $cgiQuery = CGI->new();
 
 # always set the Pragma: no-cache directive
@@ -1641,14 +1628,8 @@ sub printPageHeader {
 ##
 # Prints the HTML footer for a page.
 ##
-sub printPageFooter {
-    my $endTime = Time::HiRes::time();
-    my $elapsedTime = $endTime - $startTime;
-    my $timeString = sprintf( "%.2f seconds", $elapsedTime );
-    
+sub printPageFooter {    
     print "<BR><TABLE BORDER=0 WIDTH=100%><TR>\n";
-
-    print "<TD>page generated in $timeString</TD>\n";
 
     if( not $requirePassword 
         or ( $requirePassword and $passwordCorrect )
