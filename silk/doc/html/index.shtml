@@ -65,7 +65,12 @@ Comments are included in silk.pl to explain each setting.<BR>
 <BR>
 If you have installed CGI scripts in the past, installing silk should be easy.
 If you are unfamiliar with CGI scripts, instructions are available <A HREF="http://www.google.com/search?hl=en&lr=&ie=ISO-8859-1&safe=off&q=install+cgi+script&btnG=Search">elsewhere on the Web</A>.
- 
+
+
+<H1>how can i report bugs, access code in CVS, etc.?</H1>
+
+All of these services are available through the <A HREF="http://www.sf.net/projects/hypertext">hypertext project page</A> on SourceForge.
+
 
 <H1>what about other hypertext systems?</H1>
 
@@ -108,14 +113,15 @@ Compared to linking in a Wiki, linking in silk is much easier.
 First, you never need to know a node identifier (for example, a title) to create a silk link:  you simply add the destination node to the list of hot links.
 Since links do not depend on node titles, you can change the title of any node at any time, and since all links are bidirectional, link lists always show the current titles of the nodes they contain.
 Second, anchoring links inline is optional, so links can be quickly created without fitting them into the textual flow of the source or destination node.
-On the other hand, Wikis focus on quick text formatting, with easy syntax for font styles, lists, and indentation---silk focuses exclusively on linking and does not support formatting text.
+On the other hand, Wikis focus on quick text formatting, with easy syntax for font styles, lists, and indentation---silk focuses exclusively on linking and does not support formatting text.<BR>
+<BR>
+Talk about Everything2 here.
+
+<H1>who wrote silk?</H1>
+
+silk was written by <A HREF="http://jasonrohrer.n3.net">Jason Rohrer</A>.
 
  
-
-    
- 
-  
-
 
 </TD></TR>
 </TABLE>
