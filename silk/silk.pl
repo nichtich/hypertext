@@ -13,6 +13,9 @@
 #
 # 2004-April-4   Jason Rohrer
 # Added locking to protect file updates.
+# Added a quick ref tag map that is passed as a hidden variable along
+# with a node update to ensure that tag mapping is consistent when
+# a node is being edited by multiple users.
 #
 
 
@@ -72,8 +75,10 @@ setupDataDirectory();
 # map for quick-reference link tags
 my @nodeLinkQuickReferenceTagMap = 
     ( "C", "D", "E", "F", "G", "H", "J", "K", "L", "M", "N" );
+#my @hotLinkQuickReferenceTagMap = 
+#    ( "O", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z" );
 my @hotLinkQuickReferenceTagMap = 
-    ( "O", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z" );
+    ( "O", "Q", "R" );
 
 
 # start processing the in-bound CGI query
@@ -344,66 +349,41 @@ elsif( $action eq "updateNode" ) {
     $nodeText =~ s/\s*\n\s*\n/\n\n/g;
     
     
-    # replace all quck-ref node links with direct node links
+    # replace all quck-ref links with direct node links
+    # add to our node link list if needed
+
+    # use the quick ref tag map that is included in the update
+    my $quickRefMapString = $cgiQuery->param( "quickRefMap" ) || '';
+
+    # split based on ;
+    # this gives us a flat array of key,value pairs
+    my @quickRefMapParts = split( /[;]/, $quickRefMapString );
+    
 
     my @linkIDs = getNodeLinks( $nodeID );
 
-    my $linkIndex = 0;
-    foreach my $link ( @linkIDs ) {
-        my $quickRefTag;
-
-        if( $linkIndex < scalar( @nodeLinkQuickReferenceTagMap ) ) {
-            $quickRefTag = $nodeLinkQuickReferenceTagMap[ $linkIndex ];
-        }
-        else {
-            # not enough tags in quickref map
-            # leave node ID in place
-            $quickRefTag = $link;
-        }
-                
-        $nodeText =~
-            s/<$quickRefTag>/<$link>/gi;
-        $nodeText =~
-            s/<\/$quickRefTag>/<\/$link>/gi;
+    foreach my $mapEntry ( @quickRefMapParts ) {
         
-        $linkIndex ++;
-        }
-
-    
-    # replace all quck-ref hot links with direct node links and
-    # add to our node link list if needed
-
-    my @hotLinkIDs = getHotLinks();
-
-    $linkIndex = 0;
-    foreach my $hotLink ( @hotLinkIDs ) {
-        my $quickRefTag;
-
-        if( $linkIndex < scalar( @hotLinkQuickReferenceTagMap ) ) {
-            $quickRefTag = $hotLinkQuickReferenceTagMap[ $linkIndex ];
-        }
-        else {
-            # not enough tags in quickref map
-            # leave node ID in place
-            $quickRefTag = $hotLink;
-        }
+        ( my $tag, my $linkID ) = split( /,/ , $mapEntry );
         
-        if( $nodeText =~ m/<$quickRefTag>/i ) {
-            # text contains a link to one of our hot links
+        #untaint
+        # may be of form  139   or of form   x139  
+        ( $linkID ) = ( $linkID =~ /(x?\d+)/ );
+
+        if( $nodeText =~ m/<$tag>/i ) {
+            # text contains a link to this tag
             
             # make sure that this node is on our link list
-            makeLink( $nodeID, $hotLink );
-            
-            # replace with direct link in text
-            $nodeText =~
-                s/<$quickRefTag>/<$hotLink>/gi;
-            $nodeText =~
-                s/<\/$quickRefTag>/<\/$hotLink>/gi;
-        }
+            makeLink( $nodeID, $linkID );
 
-        $linkIndex ++;
+            # replace quick ref tag with direct link
+            $nodeText =~
+                s/<$tag>/<$linkID>/gi;
+            $nodeText =~
+                s/<\/$tag>/<\/$linkID>/gi;
+            
+        }        
     }
-    
    
     writeFile( "$dataDirectory/nodes/$nodeID.txt", $nodeText );
 
@@ -418,8 +398,15 @@ elsif( $action eq "updateExternalLink" ) {
     my $linkTitle = $cgiQuery->param( "linkTitle" ) || '';
     my $linkURL = $cgiQuery->param( "linkURL" ) || '';    
 
+    
+    # lock around updates    
+    open( LOCK_FILE, "$dataDirectory/lock" ) or die;
+    flock( LOCK_FILE, 2 ) or die;
+    
     writeFile( "$dataDirectory/externalLinks/$linkID.title", $linkTitle );
     writeFile( "$dataDirectory/externalLinks/$linkID.url", $linkURL );
+
+    close( LOCK_FILE );
 
     printNode( "x$linkID" );    
 }
@@ -513,6 +500,13 @@ elsif( $action eq "editExternalLink" or
 
 }
 else {  #default, show node form
+    
+    # lock to ensure integrity, including
+    # --protect update of next node ID file
+    # --ensure that quick ref maps are consistent with eachother
+    open( LOCK_FILE, "$dataDirectory/lock" ) or die;
+    flock( LOCK_FILE, 2 ) or die;
+
     my $nodeID = "";
     my $nodeText = "";
     if( $action eq "editNode" ) {
@@ -537,8 +531,8 @@ else {  #default, show node form
             }
             else {
                 # not enough tags in quickref map
-                # leave node ID in place
-                $quickRefTag = $link;
+                # switch to numerical index
+                $quickRefTag = $linkIndex;
             }
                 
             $nodeText =~
@@ -571,6 +565,57 @@ else {  #default, show node form
         
         $nodeText = "";
     }
+    
+    
+    # construct a map of quick ref tags to node IDs
+    # we will use this map when the edited node is submitted to ensure
+    # that the ref'd links are correct, even if the links list changes
+    # (for example, by another user) between when the edit page is generated
+    # and the node changes are submitted. 
+    my @quickRefMapParts = ();
+    
+    
+    
+
+
+    my @linkIDs = getNodeLinks( $nodeID );
+    my @hotLinkIDs = getHotLinks();
+    
+    my $linkNumber = 0;
+    foreach my $linkID ( @linkIDs ) {
+        if( $linkNumber < scalar( @nodeLinkQuickReferenceTagMap ) ) {
+            # we have enough quick reference tags numbers to tag this
+            # link
+            my $tag = $nodeLinkQuickReferenceTagMap[ $linkNumber ]; 
+            
+            push( @quickRefMapParts, "$tag,$linkID" );
+        }
+        else {
+            # not enough quick ref tags... just use link number
+            push( @quickRefMapParts, "$linkNumber,$linkID" );
+        }
+        $linkNumber ++;
+    }
+        
+    my $hotLinkNumber = 0;
+    foreach my $hotLinkID ( @hotLinkIDs ) {
+        if( $hotLinkNumber < scalar( @hotLinkQuickReferenceTagMap ) ) {
+            # we have enough quick reference tags numbers to tag this
+            # link
+            my $tag = $hotLinkQuickReferenceTagMap[ $hotLinkNumber ]; 
+            
+            push( @quickRefMapParts, "$tag,$hotLinkID" );
+        }
+        else {
+            # not enough quick ref tags... just use link number
+            # preface with H to ensure that it is unique
+            push( @quickRefMapParts, "H$hotLinkNumber,$hotLinkID" );
+        }
+        $hotLinkNumber ++;
+    }
+    
+    my $quickRefMap = join( ";", @quickRefMapParts );
+
 
     printPageHeader( "edit node" );
     
@@ -589,6 +634,10 @@ else {  #default, show node form
     print "<INPUT TYPE=\"hidden\" NAME=\"action\" VALUE=\"updateNode\">\n";
     print "<INPUT TYPE=\"hidden\" NAME=\"nodeID\" VALUE=\"$nodeID\">\n";
     
+    # pass the map as a hidden variable
+    print 
+       "<INPUT TYPE=\"hidden\" NAME=\"quickRefMap\" VALUE=\"$quickRefMap\">\n";
+
     print "<TEXTAREA COLS=60 ROWS=15 NAME=\"nodeText\" WRAP=\"soft\">" .
         "$nodeText</TEXTAREA><BR>\n";
     print "<INPUT TYPE=submit VALUE=\"update\" NAME=\"buttonUpdate\">\n";
@@ -606,6 +655,8 @@ else {  #default, show node form
 
     printLinkTable( $nodeID, 1 );
     
+    close( LOCK_FILE );
+
     print "</TD></TR></TABLE>\n";
     
     printPageFooter();
@@ -985,6 +1036,10 @@ sub printNodeLinks {
                     my $tag = $nodeLinkQuickReferenceTagMap[$linkNumber]; 
                     print "$tag";
                 }
+                else {
+                    # use the link number as the quick ref tag 
+                    print "$linkNumber";
+                }
                 print "</TD>";
             }
             print "<TD VALIGN=MIDDLE>" .
@@ -1134,6 +1189,10 @@ sub printHotLinks {
                     # link
                     my $tag = $hotLinkQuickReferenceTagMap[$linkNumber]; 
                     print "$tag";
+                }
+                else {
+                    # use the H-prefixed link number as the quick ref tag 
+                    print "H$linkNumber";
                 }
                 print "</TD>";
             }
