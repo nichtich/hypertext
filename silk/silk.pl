@@ -57,6 +57,7 @@
 # Fixed a few undefined variable warnings.
 # Fixed some wording.
 # Changed login form to POST so that password isn't visible in URL field.
+# Improved security of password hash file.
 #
 
 
@@ -67,6 +68,7 @@ my $dataDirectory;
 my $dataDirectoryName;
 my $scriptURL;
 my $requirePassword;
+my $safePasswordHashLocation;
 my $allowReadOnlyAccessWithoutPassword;
 my $allowTarballBackupOperations;
 my $errorLogPath;
@@ -107,11 +109,28 @@ BEGIN {
     # If a password is required, the password will be requested and set the 
     #   first time the silk script is run.  The MD5 hash of the password is 
     #   stored in the "password.md5" file in the data directory.
-    # To reset the password (so that the script asks for it again)
+    # To reset the password (so that the script asks for it again),
     #   delete the password.md5 file.
     # For best security, manually make password.md5 read-only after it has been
     #   created by the script (especially if you are using a shared web server
-    #   that runs CGI scripts as "nobody")
+    #   that runs CGI scripts as "nobody").
+    # Depending on your system configuration, you may also need to copy
+    #   the password.md5 file into a different, read-only directory to prevent
+    #   other users from deleting password.md5 and resetting your password.
+    #
+    # WARNING:
+    # For your silk web to be secure, you MUST make sure that only you can
+    #   edit/delete your password.md5 file.  If your web server can delete
+    #   this file, your file can be deleted by other users running
+    #   web scripts on your server (in a shared server setting).
+    
+    # a different, read-only location for the password hash file.
+    # After you log into your silk web the first time, you can copy the
+    # script-created password.md5 file here for extra security.
+    #
+    # If password.md5 exists in this "safe" location, it will override
+    # the password.md5 file in the data directory.
+    $safePasswordHashLocation = "../password.md5";
 
     # set to 1 to allow non-authenticated (no password) read-only access
     # (only applies if $requirePassword is set to 1)
@@ -208,8 +227,15 @@ my $password = "";
 my $passwordCorrect = 0;
 my $readOnlyMode = 0;
 
+my $passwordHashLocation = "$dataDirectory/password.md5";
 
-my $passwordHashExists = -e "$dataDirectory/password.md5";
+# use the safe password hash if it exists
+if( -e $safePasswordHashLocation ) {
+    $passwordHashLocation = $safePasswordHashLocation;
+}
+
+
+my $passwordHashExists = -e $passwordHashLocation;
 
 if( $requirePassword ) {
     if( $passwordCookie ne "" ) {
@@ -237,7 +263,7 @@ if( $requirePassword ) {
             # check password against hash
             
             my $truePasswordHash = 
-                readFileValue( "$dataDirectory/password.md5" );
+                readFileValue( $passwordHashLocation );
             
             if( $truePasswordHash eq $passwordHash ) {
                 $passwordCorrect = 1;
