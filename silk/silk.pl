@@ -9,6 +9,7 @@
 # 2004-March-17   Jason Rohrer
 # Added support for external links.
 # Added password access.
+# Made all quick ref tag searches case-insensitive.
 #
 
 
@@ -340,9 +341,9 @@ elsif( $action eq "updateNode" ) {
         }
                 
         $nodeText =~
-            s/<$quickRefTag>/<$link>/g;
+            s/<$quickRefTag>/<$link>/gi;
         $nodeText =~
-            s/<\/$quickRefTag>/<\/$link>/g;
+            s/<\/$quickRefTag>/<\/$link>/gi;
         
         $linkIndex ++;
         }
@@ -366,7 +367,7 @@ elsif( $action eq "updateNode" ) {
             $quickRefTag = $hotLink;
         }
         
-        if( $nodeText =~ m/<$quickRefTag>/ ) {
+        if( $nodeText =~ m/<$quickRefTag>/i ) {
             # text contains a link to one of our hot links
             
             # make sure that this node is on our link list
@@ -374,9 +375,9 @@ elsif( $action eq "updateNode" ) {
             
             # replace with direct link in text
             $nodeText =~
-                s/<$quickRefTag>/<$hotLink>/g;
+                s/<$quickRefTag>/<$hotLink>/gi;
             $nodeText =~
-                s/<\/$quickRefTag>/<\/$hotLink>/g;
+                s/<\/$quickRefTag>/<\/$hotLink>/gi;
         }
 
         $linkIndex ++;
@@ -1163,7 +1164,7 @@ sub printPageHeader {
     
     print "<TABLE BORDER=0 CELLPADDING=5 CELLSPACING=0><TR>";
     print "<TD><FONT SIZE=7>silk</FONT></TD>\n";
-    print "<TD>-<A HREF=\"$scriptURL\">new node</A><BR>\n";
+    print "<TD>-<A HREF=\"$scriptURL?action=newNode\">new node</A><BR>\n";
     print "-<A HREF=\"$scriptURL?action=newExternalLink\">" . 
         "new external link</A></TD>\n";
     print "</TR></TABLE>\n";
