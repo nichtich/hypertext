@@ -16,6 +16,7 @@
 # Added a quick ref tag map that is passed as a hidden variable along
 # with a node update to ensure that tag mapping is consistent when
 # a node is being edited by multiple users.
+# Added hot link flags for each node in current node's link list.
 #
 
 
@@ -240,10 +241,17 @@ elsif( $action eq "removeLinks" ) {
 elsif( $action eq "addToHotLinks" ) {
     my $nodeID = $cgiQuery->param( "nodeID" );
     
-    #untaint
+    # untaint
     # may be of form  139   or of form   x139  
     ( $nodeID ) = ( $nodeID =~ /(x?\d+)/ );
     
+    my $showNodeID = $cgiQuery->param( "showNodeID" );
+    
+    # untaint
+    # may be of form  139   or of form   x139  
+    ( $showNodeID ) = ( $showNodeID =~ /(x?\d+)/ );
+
+
     # make sure node not already in list 
     my $exists = 0;
 
@@ -270,7 +278,7 @@ elsif( $action eq "addToHotLinks" ) {
 
     close( LOCK_FILE );
 
-    printNode( $nodeID );
+    printNode( $showNodeID );
 }
 elsif( $action eq "removeHotLinks" ) {
     my $nodeID = $cgiQuery->param( "nodeID" );
@@ -891,14 +899,16 @@ sub printNode {
           " [<A HREF=\"$scriptURL?action=editExternalLink&linkID=$nodeID\">" . 
           "edit</A>]\n"; 
         print 
-          " [<A HREF=\"$scriptURL?action=addToHotLinks&nodeID=x$nodeID\">". 
+          " [<A HREF=\"$scriptURL?action=addToHotLinks&nodeID=x$nodeID&".
+          "showNodeID=x$nodeID\">". 
           "hot link</A>]";
     }
     else {
         print " [<A HREF=\"$scriptURL?action=editNode&nodeID=$nodeID\">" . 
-            "edit</A>]\n"; 
-        print " [<A HREF=\"$scriptURL?action=addToHotLinks&nodeID=$nodeID\">". 
-            "hot link</A>]";
+              "edit</A>]\n"; 
+        print " [<A HREF=\"$scriptURL?action=addToHotLinks&nodeID=$nodeID&".
+              "showNodeID=$nodeID\">". 
+              "hot link</A>]";
     }
 
     print "<BR><BR>\n";
@@ -1057,12 +1067,16 @@ sub printNodeLinks {
                       "<A HREF=\"$linkURL\"><FONT COLOR=#00A000>".
                       "$linkTitle</FONT></A> ".
                       "(<A HREF=\"$scriptURL?action=showNode&".
-                      "nodeID=x$linkID\">v</A>)</TD></TR>\n";
+                      "nodeID=$id\">v</A>)".
+                      "(<A HREF=\"$scriptURL?action=addToHotLinks&".
+                      "nodeID=$id&showNodeID=$nodeID\">h</A>)</TD></TR>\n";
             }
             else {
                 print "<TD VALIGN=MIDDLE>" .
                     "<A HREF=\"$scriptURL?action=showNode&nodeID=$id\">".
-                    "$title</A></TD></TR>\n";
+                    "$title</A> ".
+                    "(<A HREF=\"$scriptURL?action=addToHotLinks&".
+                    "nodeID=$id&showNodeID=$nodeID\">h</A>)</TD></TR>\n";
             }
 
             $linkNumber++;            
