@@ -45,7 +45,7 @@ The best way to understand silk is to try it:  the <A HREF="http://hypertext.sou
 
 <TABLE BORDER=0 CELLSPACING=5 CELLPADDING=0>
 <TR>
-<TD VALIGN=MIDDLE>Think MUTE is cool?  Give us a dollar. </TD> 
+<TD VALIGN=MIDDLE>Think silk is cool?  Give us a dollar. </TD> 
 <TD VALIGN=MIDDLE><input type="image" src="https://www.paypal.com/images/x-click-but04.gif" border="0" name="submit" alt="Make payments with PayPal - it's fast, free and secure!" ALIGN=MIDDLE></TD>
 <TD VALIGN=MIDDLE>[ <!--#include virtual="/silk/downloadData/downloadCount.html" --> downloads ]<BR>
 [ <!--#include virtual="/silk/donationData/donationCount.html" --> donations totalling $<!--#include virtual="/silk/donationData/overallSum.html" --> ]</TD>
