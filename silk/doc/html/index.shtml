@@ -11,6 +11,7 @@ Final proofreading and spellchecking.
 
 2004-April-23   Jason Rohrer
 Added a counter.
+Changed DL link to 0.1.1
 
 -->
 
@@ -109,7 +110,7 @@ If you have such a Web server, you can probably run silk without installing addi
 If you think you are missing required Perl modules, take a look at the list of <A HREF="requirements.shtml">software requirements</A>.<BR>
 <BR>
 
-<A HREF="http://prdownloads.sourceforge.net/hypertext/silk.pl.gz?download">Download the script</A> (v0.1), un-gzip it, and place it in your server's cgi-bin directory.
+<A HREF="http://prdownloads.sourceforge.net/hypertext/silk-0.1.1.tar.gz?download">Download the script</A> (v0.1.1), un-tar-gzip it, and place it in your server's cgi-bin directory.
 Make sure your script is executable by your Web server (for example, <TT>chmod o+x silk.pl</TT>).
 You also need to create a directory where silk will store its data (for example, <TT>cgi-data/silk</TT>).
 This data directory needs to be readable, writable, and executable by your Web server (for example, <TT>chmod o+rwx cgi-data/silk</TT>).<BR>
