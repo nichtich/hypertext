@@ -19,6 +19,9 @@
 # Added hot link flags for each node in current node's link list.
 # Added a quick-hot-link checkbox on the edit node/link screens.
 #
+# 2004-April-4   Jason Rohrer
+# Added a read-only mode.
+#
 
 
 
@@ -33,7 +36,7 @@ my $dataDirectory = "../cgi-data/silk";
 my $scriptURL = "http://localhost/cgi-bin/silk.pl";
 
 # set to 1 to require password, or 0 to allow public access
-my $requirePassword = 0;
+my $requirePassword = 1;
 
 # If a password is required, the password will be set the first
 #   time the silk script is run.  The MD5 hash of the password is stored
@@ -43,6 +46,11 @@ my $requirePassword = 0;
 # For best security, manually make password.md5 read-only after it has been
 #   created by the script (especially if you are using a shared web server
 #   that runs CGI scripts as "nobody")
+
+# set to 1 to allow non-authenticated (no password) read-only access
+# (only applies if $requirePassword is set to 1)
+my $allowReadOnlyAccessWithoutPassword = 0;
+
 
 
 # setup a local error log
@@ -103,6 +111,8 @@ my $passwordCookie = $cgiQuery->cookie( "password" ) || '';
 
 my $password;
 my $passwordCorrect = 0;
+my $readOnlyMode = 0;
+
 
 my $passwordHashExists = -e "$dataDirectory/password.md5";
 
@@ -113,30 +123,42 @@ if( $requirePassword ) {
     elsif( $action eq "login" ) {
         $password = $cgiQuery->param( "password" ) || '';
     }
-
-    my $md5 = new MD5;
-    $md5->add( $password ); 
-    my $passwordHash = $md5->hexdigest();
-
-    if( $passwordHashExists ) {
-        # check password against hash
-        
-        my $truePasswordHash = readFileValue( "$dataDirectory/password.md5" );
-
-        if( $truePasswordHash eq $passwordHash ) {
+    
+    # check if read only mode is requested
+    if( $password eq "readOnly" ) {
+        if( $allowReadOnlyAccessWithoutPassword ) {
+            $readOnlyMode = 1;
             $passwordCorrect = 1;
         }
     }
-    else {
-        # user logging in for first time
+    elsif( $password ne "" ) {
+        # check password
+
+        my $md5 = new MD5;
+        $md5->add( $password ); 
+        my $passwordHash = $md5->hexdigest();
+
+        if( $passwordHashExists ) {
+            # check password against hash
+            
+            my $truePasswordHash = 
+                readFileValue( "$dataDirectory/password.md5" );
+            
+            if( $truePasswordHash eq $passwordHash ) {
+                $passwordCorrect = 1;
+            }
+        }
+        else {
+            # user logging in for first time
+            
+            # save a hash of password
+            writeFile( "$dataDirectory/password.md5", $passwordHash );
+            
+            $passwordHashExists = 1;
         
-        # save a hash of password
-        writeFile( "$dataDirectory/password.md5", $passwordHash );
-        
-        $passwordHashExists = 1;
-        
-        # correct by default since it is new
-        $passwordCorrect = 1;
+            # correct by default since it is new
+            $passwordCorrect = 1;
+        }
     }
 }
 
@@ -179,6 +201,9 @@ if( $requirePassword and
     printPageHeader( "login" );
 
     print "<CENTER>\n";
+    if( not $passwordHashExists ) {
+        print "first login -- enter a new password<BR><BR>\n";
+    }
     print "<FORM ACTION=\"$scriptURL\">\n";
 
     print "<INPUT TYPE=\"hidden\" " . 
@@ -188,17 +213,45 @@ if( $requirePassword and
           "SIZE=20 NAME=\"password\" VALUE=\"\">";
     print "<INPUT TYPE=submit VALUE=\"login\" NAME=\"buttonLogin\">\n";
     print "</FORM>\n";
+    
+    if( $allowReadOnlyAccessWithoutPassword ) {
+        print "<BR><A HREF=\"$scriptURL?action=login&password=readOnly\">".
+              "access in read-only mode</A>\n";
+    }
     print "</CENTER>";
 
     printPageFooter();
 }
-elsif( $action eq "showNode" ) {
+elsif( $action eq "showNode" 
+       or $action eq "login"
+       or $action eq ""
+       or $readOnlyMode  ) {
+    # only allow the showNode action in read-only mode
+
     my $nodeID = $cgiQuery->param( "nodeID" );
 
     # untaint
     # may have x-prefix for an external link ID
     ( $nodeID ) = ( $nodeID =~ /(x?\d+)/ );
     
+    if( $nodeID eq "" ) {
+        if( -e "$dataDirectory/startNode" ) {
+            # no node id specified
+            # default to our start node
+
+            $nodeID = readFileValue( "$dataDirectory/startNode" );
+
+            # untaint
+            # may have x-prefix for an external link ID
+            ( $nodeID ) = ( $nodeID =~ /(x?\d+)/ );
+        }
+        else {
+            # we don't even have a start node
+            # default to node 0
+            $nodeID = 0;
+        }
+    }
+
     printNode( $nodeID );
 }
 elsif( $action eq "makeLink" ) {
@@ -375,7 +428,11 @@ elsif( $action eq "updateNode" ) {
     if( $autoAddToHotLinks eq "1" ) {
         addToHotLinks( "$nodeID" );
     }
-
+    
+    if( not -e "$dataDirectory/startNode" ) {
+        # this new node defaults as our start node
+        writeFile( "$dataDirectory/startNode", $nodeID );
+    }
 
     printNode( $nodeID );
 }
@@ -402,6 +459,11 @@ elsif( $action eq "updateExternalLink" ) {
     
     if( $autoAddToHotLinks eq "1" ) {
         addToHotLinks( "x$linkID" );
+    }
+    
+    if( not -e "$dataDirectory/startNode" ) {
+        # this new node defaults as our start node
+        writeFile( "$dataDirectory/startNode", "x$linkID" );
     }
 
 
@@ -920,7 +982,15 @@ sub printNode {
             ( "<A HREF=\"$nodeURL\"><FONT COLOR=#00A000>$nodeURL</FONT></A>" );
     }
     else {
-        my $nodeText = readFileValue( "$dataDirectory/nodes/$nodeID.txt" );
+        
+        my $nodeText;
+        
+        if( -e "$dataDirectory/nodes/$nodeID.txt" ) {
+            $nodeText = readFileValue( "$dataDirectory/nodes/$nodeID.txt" );
+        }
+        else {
+            $nodeText = "node does not exist";
+        }
 
         # split into paragraphs
         @nodeElements = split( /\n\n/, $nodeText );
@@ -939,21 +1009,24 @@ sub printNode {
           "<TR><TD>\n";
 
     print "<FONT SIZE=5>$nodeTitle</FONT>";
-    if( $isExternal ) {
-        print 
-          " [<A HREF=\"$scriptURL?action=editExternalLink&linkID=$nodeID\">" . 
-          "edit</A>]\n"; 
-        print 
-          " [<A HREF=\"$scriptURL?action=addToHotLinks&nodeID=x$nodeID&".
-          "showNodeID=x$nodeID\">". 
-          "hot link</A>]";
-    }
-    else {
-        print " [<A HREF=\"$scriptURL?action=editNode&nodeID=$nodeID\">" . 
-              "edit</A>]\n"; 
-        print " [<A HREF=\"$scriptURL?action=addToHotLinks&nodeID=$nodeID&".
-              "showNodeID=$nodeID\">". 
-              "hot link</A>]";
+    if( not $readOnlyMode ) {
+        if( $isExternal ) {
+            print 
+           " [<A HREF=\"$scriptURL?action=editExternalLink&linkID=$nodeID\">" .
+           "edit</A>]\n"; 
+            print 
+                " [<A HREF=\"$scriptURL?action=addToHotLinks&nodeID=x$nodeID&".
+                "showNodeID=x$nodeID\">". 
+                "hot link</A>]";
+        }
+        else {
+            print " [<A HREF=\"$scriptURL?action=editNode&nodeID=$nodeID\">" . 
+                  "edit</A>]\n"; 
+            print 
+                " [<A HREF=\"$scriptURL?action=addToHotLinks&nodeID=$nodeID&".
+                "showNodeID=$nodeID\">". 
+                "hot link</A>]";
+        }
     }
 
     print "<BR><BR>\n";
@@ -1096,9 +1169,11 @@ sub printNodeLinks {
                 }
                 print "</TD>";
             }
-            print "<TD VALIGN=MIDDLE>" .
-                "<INPUT TYPE=\"checkbox\" NAME=\"secondNodeID\"" .
-                "VALUE=\"$id\"></TD>";
+            if( not $readOnlyMode ) {
+                print "<TD VALIGN=MIDDLE>" .
+                      "<INPUT TYPE=\"checkbox\" NAME=\"secondNodeID\"" .
+                      "VALUE=\"$id\"></TD>";
+            }
 
             if( $id =~ m/x(\d+)/ ) {
                 # external link
@@ -1110,25 +1185,32 @@ sub printNodeLinks {
                 
                 print "<TD VALIGN=MIDDLE>" .
                       "<A HREF=\"$linkURL\"><FONT COLOR=#00A000>".
-                      "$linkTitle</FONT></A> ".
-                      "(<A HREF=\"$scriptURL?action=showNode&".
-                      "nodeID=$id\">v</A>) ".
-                      "(<A HREF=\"$scriptURL?action=addToHotLinks&".
-                      "nodeID=$id&showNodeID=$nodeID\">h</A>)</TD></TR>\n";
+                      "$linkTitle</FONT></A>";
+                
+                if( not $readOnlyMode ) {
+                    print " (<A HREF=\"$scriptURL?action=addToHotLinks&".
+                          "nodeID=$id&showNodeID=$nodeID\">h</A>) ".
+                          "(<A HREF=\"$scriptURL?action=showNode&".
+                          "nodeID=$id\">v</A>)</TD></TR>\n";
+                }
             }
             else {
                 print "<TD VALIGN=MIDDLE>" .
-                    "<A HREF=\"$scriptURL?action=showNode&nodeID=$id\">".
-                    "$title</A> ".
-                    "(<A HREF=\"$scriptURL?action=addToHotLinks&".
-                    "nodeID=$id&showNodeID=$nodeID\">h</A>)</TD></TR>\n";
+                      "<A HREF=\"$scriptURL?action=showNode&nodeID=$id\">".
+                      "$title</A>";
+                if( not $readOnlyMode ) {
+                    print " (<A HREF=\"$scriptURL?action=addToHotLinks&".
+                          "nodeID=$id&showNodeID=$nodeID\">h</A>)</TD></TR>\n";
+                }
             }
 
             $linkNumber++;            
         }
         print "</TABLE>\n";
 
-        print "<INPUT TYPE=\"submit\" VALUE=\"remove marked\">\n";
+        if( not $readOnlyMode ) {
+            print "<INPUT TYPE=\"submit\" VALUE=\"remove marked\">\n";
+        }
         print "</FORM>\n";
     }
     
@@ -1157,12 +1239,22 @@ sub getNodeLinks {
     if( $nodeID =~ m/x(\d+)/ ) {
         # arg $1 gets the (\d+) part of the match
         my $externalLinkID = $1;
-        $linksText = 
-            readFileValue( 
-                "$dataDirectory/externalLinks/$externalLinkID.links" );
+        
+        if( -e "$dataDirectory/externalLinks/$externalLinkID.links" ) {
+            $linksText = readFileValue( 
+                   "$dataDirectory/externalLinks/$externalLinkID.links" );
         }
+        else {
+            $linksText = "";
+        }
+    }
     else {
-        $linksText = readFileValue( "$dataDirectory/nodes/$nodeID.links" );
+        if( -e "$dataDirectory/nodes/$nodeID.links" ) {   
+            $linksText = readFileValue( "$dataDirectory/nodes/$nodeID.links" );
+        }
+        else {
+            $linksText = "";
+        }
     }
 
     # split by lines
@@ -1227,7 +1319,9 @@ sub printHotLinks {
     my @linkIDs = getHotLinks();
     
     if( scalar( @linkIDs ) > 0 ) {
-        print "(click \"+\" to complete a link)";
+        if( not $readOnlyMode ) {
+            print "(click \"+\" to complete a link)";
+        }
     
         print "<FORM ACTION=\"$scriptURL\" METHOD=POST>\n";
         print 
@@ -1258,13 +1352,14 @@ sub printHotLinks {
 
             my $title = getNodeTitle( $id );
             
-            
-            print "<TD VALIGN=MIDDLE>" .
-                "<INPUT TYPE=\"checkbox\" NAME=\"idToRemove\"" .
-                " VALUE=\"$id\"></TD>";
-            print "<TD VALIGN=MIDDLE>" .
-                "[<A HREF=\"$scriptURL?action=makeLink&firstNodeID=$nodeID" .
-                "&secondNodeID=$id\">+</A>]</TD>";
+            if( not $readOnlyMode ) {
+                print "<TD VALIGN=MIDDLE>" .
+                      "<INPUT TYPE=\"checkbox\" NAME=\"idToRemove\"" .
+                      " VALUE=\"$id\"></TD>";
+                print "<TD VALIGN=MIDDLE>" .
+                  "[<A HREF=\"$scriptURL?action=makeLink&firstNodeID=$nodeID" .
+                  "&secondNodeID=$id\">+</A>]</TD>";
+            }
 
             if( $id =~ m/x(\d+)/ ) {
                 # external link
@@ -1276,9 +1371,11 @@ sub printHotLinks {
                 
                 print "<TD VALIGN=MIDDLE>" .
                       "<A HREF=\"$linkURL\"><FONT COLOR=#00A000>".
-                      "$linkTitle</FONT></A> ".
-                      "(<A HREF=\"$scriptURL?action=showNode&".
-                      "nodeID=x$linkID\">v</A>)</TD></TR>\n";
+                          "$linkTitle</FONT></A>";
+                if( not $readOnlyMode ) {
+                      print " (<A HREF=\"$scriptURL?action=showNode&".
+                          "nodeID=x$linkID\">v</A>)</TD></TR>\n";
+                  }
             }
             else {
                 print "<TD VALIGN=MIDDLE>" .
@@ -1289,7 +1386,10 @@ sub printHotLinks {
             $linkNumber++;
         }
         print "</TABLE>\n";
-        print "<INPUT TYPE=\"submit\" VALUE=\"remove marked\">\n";
+        
+        if( not $readOnlyMode ) {
+            print "<INPUT TYPE=\"submit\" VALUE=\"remove marked\">\n";
+        }
         print "</FORM>\n";
     }
 
@@ -1321,15 +1421,21 @@ sub printPageHeader {
     
     print "<TABLE BORDER=0 CELLPADDING=5 CELLSPACING=0><TR>";
     print "<TD><FONT SIZE=7>silk</FONT></TD>\n";
-    print "<TD>-<A HREF=\"$scriptURL?action=newNode\">new node</A><BR>\n";
-    print "-<A HREF=\"$scriptURL?action=newExternalLink\">" . 
-        "new external link</A></TD>\n";
+    if( not $readOnlyMode ) {
+        print "<TD>-<A HREF=\"$scriptURL?action=newNode\">new node</A><BR>\n";
+        print "-<A HREF=\"$scriptURL?action=newExternalLink\">" . 
+            "new external link</A></TD>\n";
+    }
     print "</TR></TABLE>\n";
     
     print "</TD>\n";
 
     if( $requirePassword and $passwordCorrect ) {
-        print "<TD ALIGN=RIGHT>".
+        print "<TD ALIGN=RIGHT>";
+        if( $readOnlyMode ) {
+            print "read-only mode<BR>\n";
+        }
+        print
             "[<A HREF=\"$scriptURL?action=logout\">logout</A>]</TD>\n";
     }
     
