@@ -28,6 +28,32 @@ Creating and maintaining links, on the other hand, is generally more difficult.<
 <BR>
 The best way to understand silk is to try it:  the <A HREF="http://hypertext.sourceforge.net/cgi-bin/silk.pl">silk Sandbox</A> is open to the public.
 
+
+<CENTER>
+<form action="https://www.paypal.com/cgi-bin/webscr" method="post">
+<input type="hidden" name="cmd" value="_xclick">
+<input type="hidden" name="business" value="jcr13@users.sf.net">
+<input type="hidden" name="item_name" value="The silk project">
+<input type="hidden" name="no_shipping" value="1">
+<input type="hidden" name="return" value="http://hypertext.sf.net/silk/thanks.shtml">
+<input type="hidden" name="cancel_return" value="http://mute-net.sf.net">
+<input type="hidden" name="no_note" value="1">
+<input type="hidden" name="currency_code" value="USD">
+<input type="hidden" name="tax" value="0">
+<input type="hidden" name="custom" value="silk_donate">
+<input type="hidden" name="notify_url" value="http://hypertext.sf.net/cgi-bin/silk/donationTracker.pl">
+
+<TABLE BORDER=0 CELLSPACING=5 CELLPADDING=0>
+<TR>
+<TD VALIGN=MIDDLE>Think MUTE is cool?  Give us a dollar. </TD> 
+<TD VALIGN=MIDDLE><input type="image" src="https://www.paypal.com/images/x-click-but04.gif" border="0" name="submit" alt="Make payments with PayPal - it's fast, free and secure!" ALIGN=MIDDLE></TD>
+<TD VALIGN=MIDDLE>[ <!--#include virtual="/silk/downloadData/downloadCount.html" --> downloads ]<BR>
+[ <!--#include virtual="/silk/donationData/donationCount.html" --> donations totalling $<!--#include virtual="/silk/donationData/overallSum.html" --> ]</TD>
+</TR>
+</TABLE>
+</FORM>
+</CENTER>
+
 <H1>what makes linking difficult?</H1> 
 In most hypertext systems, to link to a document, you must first obtain that document's identifier, be it a URL (http://www.somewhere...), a node number, or a camel case document title (CanYouRememberThisTitle).
 Then, you must select or create an appropriate text region as an anchor for the link (for example, <A HREF="http://www.google.com">a piece of text</A> in the middle of your document).
@@ -48,7 +74,7 @@ However, a URL can be entered once and used over and over throughout a silk web:
 <H1>how do i use silk?</H1>
 
 Though silk was designed to be easy to use and understand, there are a few subtleties.
-The <A HREF="userGuide.shtml">silk User's Guide</A> provides a complete description of the various features. 
+The <A HREF="userGuide.shtml">silk user's guide</A> provides a complete description of the various features. 
 
 
 <H1>how can i run my own silk web?</H1>
@@ -94,7 +120,7 @@ Finally, we must type the HTML linking syntax (easy to memorize, with practice, 
 <CENTER><TT>
 &lt;A HREF="http://www.google.com"&gt;click here to visit Google&lt;/A&gt;
 </TT></CENTER>
-Of course, after going through these steps, we have only created a unidirectional link:  the multi-owner architecture of the web makes automatic bidirectional linking impossible (and even if we own the destination page, we have to manually create the back link by repeating these steps).<BR>
+Of course, after going through these steps, we have only created a unidirectional link:  the multi-owner architecture of the web makes automatic bidirectional linking impossible (and even if we own the destination page, we would have to manually create a back link by repeating these steps).<BR>
 <BR>
 
 Linking is not the only operation that is cumbersome on the Web:  page creation, in general, can be painful.
@@ -115,17 +141,42 @@ Since links do not depend on node titles, you can change the title of any node a
 Second, anchoring links inline is optional, so links can be quickly created without fitting them into the textual flow of the source or destination node.
 On the other hand, Wikis focus on quick text formatting, with easy syntax for font styles, lists, and indentation---silk focuses exclusively on linking and does not support formatting text.<BR>
 <BR>
-Talk about Everything2 here.
+Another interesting Web-based hypertext system is <A HREF="http://www.everything2.com/">Everything2</A>.
+Links can be created explicitly in Everything2 nodes with title-based syntax, similar to that of a Wiki, with brackets around phrases, <TT>[like this]</TT>.
+Everything2 adds a unique twist:  clicking on a link for nonexistane node (for example, if there is no node called "like this") performs a search for the link words.
+In addition to explicit link creation, Everything2 creates additional links between nodes automatically based on user traversal patterns---these automatic connections are called <I>soft links</I>.
+For example, if a user leaves node <I>A</I> by running a search to find node <I>B</I>, soft links are created from <I>A</I> to <I>B</I> and back from <I>B</I> to <I>A</I>.
+These soft links are sorted by popularity and displayed at the bottom of each node.
+Because soft links are sorted and potentially dropped according to popularity, and the popularity scale can vary wildly between linked nodes, soft links are not necessarily bidirectional.
+For example, though a node about the Postmaster may have a single soft link to a node about Mickey Mouse, the Mickey Mouse node's soft link list may be full of popular soft links (the limit seems to be 48 links) and have no room for a link back to the Postmaster node.
+Soft links in Everything2 can best be described as <I>semi-bidirectional</I>.<BR>
+<BR>
+Despite its various linking innovations, Everything2 bears many of the same obstacles to linking that Wikis do.
+Title-based linking requires knowing the title of the target node and typing it correctly (a point emphasized throughtout the Everything2 documentation:  the mantra seems to be, "Check your links for typos.").
+A partial solution to this problem is Everything2's fall-back to searching for unknown link words, but it is not a functional fix (linking to Potsmaster by accident may produce amusing search results, but the intended connection is still lost).
+Nothing could be "easier" than an automatic link creation mechanism like soft links, and they work quickly to create well-linked nodes with no explicit effort on the part of the users.
+However, they do not reduce the friction of intentional linking at all, and they often capture inappropriate, unintential associations.
+For example, while you read a node about the Postmaster, the phone rings and a conversation about a broken air conditioner ensues.
+After the phone call, you perform a search for "air conditioner repair," accidentally creating a useless soft link.
+  
 
 <H1>who wrote silk?</H1>
 
 silk was written by <A HREF="http://jasonrohrer.n3.net">Jason Rohrer</A>.
 
  
+<TABLE WIDTH=100%>
+<TR><TD ALIGN=RIGHT>
+Hosted by:<BR>
+<A href="http://sourceforge.net"> <IMG src="http://sourceforge.net/sflogo.php?group_id=54984" width="88" height="31"
+border="0" alt="SourceForge Logo"></A>
+</TD></TR>
+</TABLE>
 
 </TD></TR>
 </TABLE>
 </CENTER>
+
 
 <BODY>
 </HTML>

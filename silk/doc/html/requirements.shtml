@@ -1,0 +1,39 @@
+<HTML>
+
+<HEAD>
+<TITLE>silk software requirements</TITLE>
+</HEAD>
+
+<BODY BGCOLOR=#FFFFFF TEXT=#000000 LINK=#0000FF ALINK=#FF0000 VLINK=#0000FF>
+
+<CENTER>
+<A HREF="index.shtml"><IMG SRC="images/logo.png" WIDTH=150 HEIGHT=76 BORDER=0></A><BR>
+frictionless linking
+
+<TABLE WIDTH=75%>
+<TR><TD>
+<H1>what software does silk require?</H1>
+
+silk was primarily developed and tested using the following setup:
+<UL>
+<LI>Perl version 5.005_03</LI>
+<LI><A HREF="http://stein.cshl.org/WWW/software/CGI/">CGI.pm</A> version 2.4.6</LI>
+<LI>MD5.pm version 1.7</LI>
+</UL>
+<BR>
+
+silk has also been tested using following setup (the the <A HREF="http://hypertext.sourceforge.net/cgi-bin/silk.pl">silk Sandbox</A>):
+<UL>
+<LI>Perl version 5.8.0</LI>
+<LI>CGI.pm version 2.8.9</LI>
+<LI>MD5.pm version 2.20</LI>
+</UL>
+
+
+</TD></TR>
+</TABLE>
+</CENTER>
+
+
+<BODY>
+</HTML>
