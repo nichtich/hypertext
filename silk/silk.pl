@@ -8,19 +8,35 @@
 #
 # 2004-March-17   Jason Rohrer
 # Added support for external links.
+# Added password access.
 #
 
 
 
 # settings that can be customized to a specific system setup
+
+# where silk will store its data files.
+# must be writable to the process that runs CGI scripts on your web server
+# you should also edit the $dataDirectory variable for the error log below
 my $dataDirectory = "../cgi-data/silk";
+
+# the external URL for the silk script
 my $scriptURL = "http://localhost/cgi-bin/silk.pl";
 
+# set to 1 to require password, or 0 to allow public access
+my $requirePassword = 0;
 
-# end of customizable settings
+# If a password is required, the password will be set the first
+#   time the silk script is run.  The MD5 hash of the password is stored
+#   in the "password.md5" file in the data directory.
+# To reset the password (so that the script asks for it again)
+#   delete the password.md5 file.
+# For best security, manually make password.md5 read-only after it has been
+#   created by the script (especially if you are using a shared web server
+#   that runs CGI scripts as "nobody")
+
 
 # setup a local error log
-#use CGI::Carp qw(carpout);
 BEGIN {
     my $dataDirectory = "../cgi-data/silk";
     use CGI::Carp qw(carpout);
@@ -30,9 +46,15 @@ BEGIN {
 }
 
 
+# end of customizable settings
+
+
+
+
 
 use strict;
 use CGI;                # Object-Oriented
+use MD5;
 
 
 # allow group to write to our data files
@@ -60,10 +82,107 @@ $cgiQuery->cache( 1 );
 
 my $action = $cgiQuery->param( "action" ) || '';
 
-print $cgiQuery->header( -type=>'text/html', -expires=>'now',
-                         -Cache_control=>'no-cache' );
 
-if( $action eq "showNode" ) {
+
+# if required:
+# handle retrieving the user's password, checking it, and storing
+# it in a cookie
+
+# get the password cookie, if it exists
+my $passwordCookie = $cgiQuery->cookie( "password" ) || '';
+
+my $password;
+my $passwordCorrect = 0;
+
+my $passwordHashExists = -e "$dataDirectory/password.md5";
+
+if( $requirePassword ) {
+    if( $passwordCookie ne "" ) {
+        $password = $passwordCookie;
+    }
+    elsif( $action eq "login" ) {
+        $password = $cgiQuery->param( "password" ) || '';
+    }
+
+    my $md5 = new MD5;
+    $md5->add( $password ); 
+    my $passwordHash = $md5->hexdigest();
+
+    if( $passwordHashExists ) {
+        # check password against hash
+        
+        my $truePasswordHash = readFileValue( "$dataDirectory/password.md5" );
+
+        if( $truePasswordHash eq $passwordHash ) {
+            $passwordCorrect = 1;
+        }
+    }
+    else {
+        # user logging in for first time
+        
+        # save a hash of password
+        writeFile( "$dataDirectory/password.md5", $passwordHash );
+        
+        $passwordHashExists = 1;
+        
+        # correct by default since it is new
+        $passwordCorrect = 1;
+    }
+}
+
+
+# set the password cookie if we have a correct password
+if( $passwordCorrect ) {
+    my $cookieToSet;
+    
+    if( $action eq "logout" ) {
+        $cookieToSet = $cgiQuery->cookie( -name=>"password",
+                                          -value=>"" );
+        $passwordCorrect = 0;
+    }
+    else {
+        $cookieToSet = $cgiQuery->cookie( -name=>"password",
+                                          -value=>"$password",
+                                          -expires=>"+1h" );
+    }
+    print $cgiQuery->header( -type=>'text/html',
+                             -expires=>'now',
+                             -Cache_control=>'no-cache',
+                             -cookie=>[ $cookieToSet ] );
+}
+else {
+    print $cgiQuery->header( -type=>'text/html', -expires=>'now',
+                             -Cache_control=>'no-cache' );
+}
+
+
+
+
+# handle various states and user actions
+
+if( $requirePassword and
+    ( ( not $passwordHashExists and $action ne "login" )
+      or ( $passwordHashExists and not $passwordCorrect ) ) ) {
+    
+    # show the login form
+
+    printPageHeader( "login" );
+
+    print "<CENTER>\n";
+    print "<FORM ACTION=\"$scriptURL\">\n";
+
+    print "<INPUT TYPE=\"hidden\" " . 
+        "NAME=\"action\" VALUE=\"login\">\n";
+    
+    print "password: <INPUT TYPE=\"password\" MAXLENGTH=256 ".
+          "SIZE=20 NAME=\"password\" VALUE=\"\">";
+    print "<INPUT TYPE=submit VALUE=\"login\" NAME=\"buttonLogin\">\n";
+    print "</FORM>\n";
+    print "</CENTER>";
+
+    printPageFooter();
+}
+elsif( $action eq "showNode" ) {
     my $nodeID = $cgiQuery->param( "nodeID" );
 
     # untaint
@@ -323,9 +442,10 @@ elsif( $action eq "editExternalLink" or
     print "<TR><TD VALIGN=TOP ALIGN=CENTER WIDTH=75%>\n";
     
 
-    print "<TABLE CELLPADDING=0 CELLSPACING=0 BORDER=0 WIDTH=90%><TR><TD>\n";
+    print "<BR>\n<TABLE CELLPADDING=0 CELLSPACING=0 BORDER=0 WIDTH=90%>\n";
+    print "<TR><TD>\n";
 
-    print "<FONT SIZE=7>edit external link</FONT><BR>\n";
+    print "<FONT SIZE=5>edit external link</FONT><BR>\n";
 
     print "<FORM METHOD=POST ACTION=\"$scriptURL\">\n";
 
@@ -424,9 +544,10 @@ else {  #default, show node form
     print "<TR><TD VALIGN=TOP ALIGN=CENTER WIDTH=75%>\n";
     
 
-    print "<TABLE CELLPADDING=0 CELLSPACING=0 BORDER=0 WIDTH=90%><TR><TD>\n";
+    print "<BR>\n<TABLE CELLPADDING=0 CELLSPACING=0 BORDER=0 WIDTH=90%>";
+    print "<TR><TD>\n";
 
-    print "<FONT SIZE=7>edit node</FONT><BR>\n";
+    print "<FONT SIZE=5>edit node</FONT><BR>\n";
 
     print "<FORM METHOD=POST ACTION=\"$scriptURL\">\n";
 
@@ -652,7 +773,7 @@ sub printNode {
             readFileValue( "$dataDirectory/externalLinks/$nodeID.url" );
         
         @nodeElements = 
-            ( "<A HREF=\"$nodeURL\"><FONT COLOR=#00A000>$nodeURL</A>" );
+            ( "<A HREF=\"$nodeURL\"><FONT COLOR=#00A000>$nodeURL</FONT></A>" );
     }
     else {
         my $nodeText = readFileValue( "$dataDirectory/nodes/$nodeID.txt" );
@@ -670,8 +791,8 @@ sub printNode {
     print "<TR><TD VALIGN=TOP ALIGN=CENTER WIDTH=75%>\n";
     
         
-    print "<TABLE CELLPADDING=0 CELLSPACING=0 BORDER=0 WIDTH=90%>" .
-        "<TR><TD>\n";
+    print "<BR>\n<TABLE CELLPADDING=0 CELLSPACING=0 BORDER=0 WIDTH=90%>" .
+          "<TR><TD>\n";
 
     print "<FONT SIZE=5>$nodeTitle</FONT>";
     if( $isExternal ) {
@@ -1035,16 +1156,28 @@ sub printPageHeader {
         "<BODY BGCOLOR=#FFFFFF TEXT=#000000 LINK=#0000FF VLINK=#0000FF " . 
         "ALINK=#FF0000>\n";
     
-    print "<TABLE WIDTH=100% CELLPADDING=5 CELLSPACING=0 BORDER=0>" .
+    print "<TABLE WIDTH=100% CELLPADDING=0 CELLSPACING=0 BORDER=0>" .
         "<TR><TD BGCOLOR=#C0C0C0>";
-    #print "test<BR>";
-    print "<TABLE><TR><TD><FONT SIZE=7>silk</FONT></TD>\n";
-    print "<TD>-- <A HREF=\"$scriptURL\">new node</A> --<BR>\n";
-    print "-- <A HREF=\"$scriptURL?action=newExternalLink\">" . 
-        "new external link</A> --\n";
+
+    print "<TABLE BORDER=0 WIDTH=100% CELLPADDING=0 CELLSPACING=0><TR><TD>\n";
+    
+    print "<TABLE BORDER=0 CELLPADDING=5 CELLSPACING=0><TR>";
+    print "<TD><FONT SIZE=7>silk</FONT></TD>\n";
+    print "<TD>-<A HREF=\"$scriptURL\">new node</A><BR>\n";
+    print "-<A HREF=\"$scriptURL?action=newExternalLink\">" . 
+        "new external link</A></TD>\n";
+    print "</TR></TABLE>\n";
+    
+    print "</TD>\n";
+
+    if( $requirePassword and $passwordCorrect ) {
+        print "<TD ALIGN=RIGHT>".
+            "[<A HREF=\"$scriptURL?action=logout\">logout</A>]</TD>\n";
+    }
+    
+    print "</TR></TABLE>\n";
+
     print "</TD></TR></TABLE>\n";
-    print "</TD></TR></TABLE>\n";
-#    print "<HR>\n";
 
 }
 
