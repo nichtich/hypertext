@@ -36,6 +36,7 @@
 # 2004-April-8   Jason Rohrer
 # Added support for getting a backup tarball.
 # Added support for restoring from a backup tarball.
+# Fixed some helper-app path bugs.  Made compatible with older CGI.pm
 #
 
 
@@ -80,8 +81,7 @@ my $allowReadOnlyAccessWithoutPassword = 0;
 # used for generating data tarballs (for backup purposes)
 my $tarPath = "/bin/tar";
 my $gzipPath = "/bin/gzip";
-my $cdPath = "/bin/cd";
-my $rmPath = "/bin/rm";
+my $rmPath = "rm";
 
 
 # setup a local error log
@@ -308,7 +308,7 @@ elsif( $action eq "getDataTarball" ) {
     $ENV{ "PATH" } = "";
 
     open( TARBALL_READER, 
-          "$cdPath $dataDirectory/..; $tarPath cf - $dataDirectoryName | ".
+          "cd $dataDirectory/..; $tarPath cf - $dataDirectoryName | ".
           "$gzipPath -f |" );
 
     while( <TARBALL_READER> ) {
@@ -324,7 +324,10 @@ elsif( not $readOnlyMode and
     my $oldPath = $ENV{ "PATH" };
     $ENV{ "PATH" } = "";
 
-    my $tarballContents = $cgiQuery->upload( "tarball" );
+    # using upload() instead of param() is safer (deals with errors in a better
+    # way), but requires CGI.pm v2.47
+    # my $tarballContents = $cgiQuery->upload( "tarball" );
+    my $tarballContents = $cgiQuery->param( "tarball" );
 
     my $tempTarballFile = "$tempDirectory/silk_backup.tar.gz";
 
