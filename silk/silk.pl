@@ -60,6 +60,10 @@
 # Improved security of password hash file.
 # Added a version string.
 #
+# 2004-June-11   Jason Rohrer
+# Fixed a read-only login bug (if no password hash exists) pointed out 
+# by Sebastien L.
+#
 
 my $silkVersion = "0.1.1";
 
@@ -355,7 +359,7 @@ else {
 # handle various states and user actions
 
 if( $requirePassword and
-    ( ( not $passwordHashExists and $action ne "login" )
+    ( ( not $passwordHashExists and $action ne "login" and not $readOnlyMode )
       or ( $passwordHashExists and not $passwordCorrect ) ) ) {
     
     # show the login form
