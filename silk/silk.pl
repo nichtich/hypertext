@@ -11,6 +11,9 @@
 # Added password access.
 # Made all quick ref tag searches case-insensitive.
 #
+# 2004-April-4   Jason Rohrer
+# Added locking to protect file updates.
+#
 
 
 
@@ -240,6 +243,11 @@ elsif( $action eq "addToHotLinks" ) {
     # make sure node not already in list 
     my $exists = 0;
 
+
+    # lock to protect our file update    
+    open( LOCK_FILE, "$dataDirectory/lock" ) or die;
+    flock( LOCK_FILE, 2 ) or die;
+
     my $oldLinksText = readFileValue( "$dataDirectory/hot.links" );
     
     # split by lines
@@ -255,6 +263,9 @@ elsif( $action eq "addToHotLinks" ) {
     if( not $exists ) {
         addToFile( "$dataDirectory/hot.links", "$nodeID\n" );
     }
+
+    close( LOCK_FILE );
+
     printNode( $nodeID );
 }
 elsif( $action eq "removeHotLinks" ) {
@@ -267,7 +278,13 @@ elsif( $action eq "removeHotLinks" ) {
     # idToRemove parameter might occur multiple times, once for
     # each node that is flagged for removal from the hot links list.
     my @idsToRemove = $cgiQuery->param( "idToRemove" );
+
     
+    # lock to protect our file update    
+    open( LOCK_FILE, "$dataDirectory/lock" ) or die;
+    flock( LOCK_FILE, 2 ) or die;
+
+
     my $oldLinksText = readFileValue( "$dataDirectory/hot.links" );
     
     # if some ids are listed for removal
@@ -303,6 +320,10 @@ elsif( $action eq "removeHotLinks" ) {
 
         writeFile( "$dataDirectory/hot.links", $newLinkText );
     }
+
+    
+    close( LOCK_FILE );
+
 
     printNode( $nodeID );
 }
@@ -421,12 +442,18 @@ elsif( $action eq "editExternalLink" or
     }
     
     if( $linkID eq "" ) {
+        # lock to protect our file update    
+        open( LOCK_FILE, "$dataDirectory/lock" ) or die;
+        flock( LOCK_FILE, 2 ) or die;
+
         $linkID = readFileValue( "$dataDirectory/nextExternalLinkID" );
         
         #untaint
         ( $linkID ) = ( $linkID =~ /(\d+)/ );
 
         writeFile( "$dataDirectory/nextExternalLinkID", $linkID + 1 );
+        
+        close( LOCK_FILE );
 
         writeFile( "$dataDirectory/externalLinks/$linkID.url", $linkURL );
         
@@ -524,12 +551,19 @@ else {  #default, show node form
     }
     
     if( $nodeID eq "" ) {
+        # lock to protect our file update    
+        open( LOCK_FILE, "$dataDirectory/lock" ) or die;
+        flock( LOCK_FILE, 2 ) or die;
+
         $nodeID = readFileValue( "$dataDirectory/nextNodeID" );
         
         #untaint
         ( $nodeID ) = ( $nodeID =~ /(\d+)/ );
 
         writeFile( "$dataDirectory/nextNodeID", $nodeID + 1 );
+        
+        close( LOCK_FILE );
+
 
         writeFile( "$dataDirectory/nodes/$nodeID.txt", $nodeText );
         
@@ -655,9 +689,15 @@ sub makeLink {
 sub removeLink {
     my $firstNodeID = $_[0];
     my $secondNodeID = $_[1];
+    
+    # lock to protect our file updates    
+    open( LOCK_FILE, "$dataDirectory/lock" ) or die;
+    flock( LOCK_FILE, 2 ) or die;
 
     removeLinkOneWay( $firstNodeID, $secondNodeID );
     removeLinkOneWay( $secondNodeID, $firstNodeID );
+
+    close( LOCK_FILE );
 }
 
 
@@ -1242,7 +1282,10 @@ sub setupDataDirectory {
     if( not -e "$dataDirectory/externalLinks" ) {
         makeDirectory( "$dataDirectory/externalLinks", oct( "0777" ) );
     }
-    
+
+    if( not -e "$dataDirectory/lock" ) {
+        writeFile( "$dataDirectory/lock", "" );
+    }    
     if( not -e "$dataDirectory/hot.links" ) {
         writeFile( "$dataDirectory/hot.links", "" );
     }
