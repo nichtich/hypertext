@@ -1,9 +1,5 @@
 #!/usr/bin/perl -wT
 
-
-
-
-
 #
 # Modification History
 #
@@ -43,6 +39,7 @@
 # Removed unneeded temp directory setting.
 # Removed use of Time:HiRes to reduce dependencies.
 # Removed settings for SmallProf.
+# Changed settings to match SourceForge silk sandbox setup.
 #
 
 
@@ -59,7 +56,7 @@ my $dataDirectory = "../cgi-data/silk";
 my $dataDirectoryName = "silk";
 
 # the external URL for the silk script
-my $scriptURL = "http://localhost/cgi-bin/silk.pl";
+my $scriptURL = "http://hypertext.sourceforge.net/cgi-bin/silk.pl";
 
 # set to 1 to require password, or 0 to allow public access
 my $requirePassword = 0;
