@@ -35,6 +35,7 @@
 #
 # 2004-April-8   Jason Rohrer
 # Added support for getting a backup tarball.
+# Added support for restoring from a backup tarball.
 #
 
 
@@ -49,6 +50,12 @@ my $dataDirectory = "../cgi-data/silk";
 # the name of the data directory.
 # in other words, the last step in the data directory path
 my $dataDirectoryName = "silk";
+
+# directory where this script can write temporary files.
+# must be different from $dataDirectory, and cannot be a subdirectory of
+# $dataDirectory ($tempDirectory is used when restoring the $dataDirectory
+# from a tarball).
+my $tempDirectory = "/tmp";
 
 # the external URL for the silk script
 my $scriptURL = "http://localhost/cgi-bin/silk.pl";
@@ -73,6 +80,8 @@ my $allowReadOnlyAccessWithoutPassword = 0;
 # used for generating data tarballs (for backup purposes)
 my $tarPath = "/bin/tar";
 my $gzipPath = "/bin/gzip";
+my $cdPath = "/bin/cd";
+my $rmPath = "/bin/rm";
 
 
 # setup a local error log
@@ -293,6 +302,53 @@ if( $requirePassword and
 
     printPageFooter();
 }
+elsif( $action eq "getDataTarball" ) {
+    
+    my $oldPath = $ENV{ "PATH" };
+    $ENV{ "PATH" } = "";
+
+    open( TARBALL_READER, 
+          "$cdPath $dataDirectory/..; $tarPath cf - $dataDirectoryName | ".
+          "$gzipPath -f |" );
+
+    while( <TARBALL_READER> ) {
+        print "$_";
+    }
+    close( TARBALL_READER );
+
+    $ENV{ "PATH" } = $oldPath;
+}
+elsif( not $readOnlyMode and 
+       $action eq "restoreFromDataTarball" ) {
+    
+    my $oldPath = $ENV{ "PATH" };
+    $ENV{ "PATH" } = "";
+
+    my $tarballContents = $cgiQuery->upload( "tarball" );
+
+    my $tempTarballFile = "$tempDirectory/silk_backup.tar.gz";
+
+    open( TARBALL_WRITER,
+          ">$tempTarballFile" );
+    
+    while( <$tarballContents> ) {
+        print TARBALL_WRITER $_;
+    }
+
+    close( TARBALL_WRITER );
+
+    # clear the data directory
+    `$rmPath -rf $dataDirectory/*`;
+    
+    # restore from the temp tarball
+    `$gzipPath -dc $tempTarballFile | $tarPath x -C $dataDirectory/..`; 
+    
+    unlink( $tempTarballFile );
+
+    $ENV{ "PATH" } = $oldPath;
+    
+    printStartNode();
+}
 elsif( $action eq "showNode" 
        or $action eq "login"
        or $action eq ""
@@ -306,40 +362,35 @@ elsif( $action eq "showNode"
     ( $nodeID ) = ( $nodeID =~ /(x?\d+)/ );
     
     if( $nodeID eq "" ) {
-        if( -e "$dataDirectory/startNode" ) {
-            # no node id specified
-            # default to our start node
-
-            $nodeID = readFileValue( "$dataDirectory/startNode" );
-
-            # untaint
-            # may have x-prefix for an external link ID
-            ( $nodeID ) = ( $nodeID =~ /(x?\d+)/ );
-        }
-        else {
-            # we don't even have a start node
-            # default to node 0
-            $nodeID = 0;
-        }
+        printStartNode();
     }
-
-    printNode( $nodeID );
+    else {
+        printNode( $nodeID );
+    }
 }
-elsif( $action eq "getDataTarball" ) {
+elsif( not $readOnlyMode and 
+       $action eq "showRestoreForm" ) {
     
-    my $oldPath = $ENV{ "PATH" };
-    $ENV{ "PATH" } = "";
+    # show the tarball selection form
 
-    open( TARBALL_READER, 
-          "cd $dataDirectory/..; $tarPath cf - $dataDirectoryName | ".
-          "$gzipPath -f |" );
+    printPageHeader( "restore from tarball" );
 
-    while( <TARBALL_READER> ) {
-        print "$_";
-    }
-    close( TARBALL_READER );
+    print "<CENTER>\n";
 
-    $ENV{ "PATH" } = $oldPath;
+    print "<FORM METHOD=POST ACTION=\"$scriptURL\" ".
+          "ENCTYPE=\"multipart/form-data\">\n";
+
+    print "<INPUT TYPE=\"hidden\" " . 
+          "NAME=\"action\" VALUE=\"restoreFromDataTarball\">\n";
+    
+    print 
+        "tarball file: <INPUT TYPE=\"file\" NAME=\"tarball\" VALUE=\"\"><BR>";
+    print "<INPUT TYPE=submit VALUE=\"restore\" NAME=\"buttonRestore\">\n";
+    print "</FORM>\n";
+    
+    print "</CENTER>";
+
+    printPageFooter();
 }
 elsif( $action eq "makeLink" ) {
     my $firstNodeID = $cgiQuery->param( "firstNodeID" );
@@ -650,7 +701,46 @@ elsif( $action eq "editExternalLink" or
     printPageFooter();
 
 }
-else {  #default, show node form
+else {  
+    #default, show node form
+    
+    printEditNodeForm();
+} 
+
+
+
+##
+# Prints the default start node.
+##
+sub printStartNode {
+    my $nodeID;
+
+    if( -e "$dataDirectory/startNode" ) {
+        
+        $nodeID = readFileValue( "$dataDirectory/startNode" );
+
+        # untaint
+        # may have x-prefix for an external link ID
+        ( $nodeID ) = ( $nodeID =~ /(x?\d+)/ );
+        
+        printNode( $nodeID );
+    }
+    else {
+        # we don't even have a start node
+        # default to the node creation form 
+        
+        printEditNodeForm();
+    }
+}
+
+
+
+##
+# Prints the form for editing a node.
+#
+# Parses CGI parameters to select which node to edit.
+##
+sub printEditNodeForm {
     
     # lock to ensure integrity, including
     # --protect update of next node ID file
@@ -818,7 +908,7 @@ else {  #default, show node form
     print "</TD></TR></TABLE>\n";
     
     printPageFooter();
-} 
+}
 
 
 
@@ -1554,9 +1644,17 @@ sub printPageFooter {
     print "<TD>page generated in $timeString</TD>\n";
 
     if( not $requirePassword 
-        or ( $requirePassword and $passwordCorrect ) ) {
+        or ( $requirePassword and $passwordCorrect )
+        or $readOnlyMode ) {
         print "<TD ALIGN=RIGHT><A HREF=\"$scriptURL?action=getDataTarball\">".
-              "get backup tarball</A></TD>\n";
+              "get backup tarball</A><BR>\n";
+        if( not $readOnlyMode ) {
+            print "<A HREF=\"$scriptURL?action=showRestoreForm\">".
+                "restore from tarball</A></TD>\n";
+        }
+        else {
+            print "</TD>\n";
+        }
     }
 
     print "</TR></TABLE>\n";
