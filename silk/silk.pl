@@ -64,8 +64,11 @@
 # Fixed a read-only login bug (if no password hash exists) pointed out 
 # by Sebastien L.
 #
+# 2004-December-7   Jason Rohrer
+# Changed to use new location of MD5 module.
+#
 
-my $silkVersion = "0.1.1";
+my $silkVersion = "0.1.?";
 
 
 
@@ -179,7 +182,7 @@ BEGIN {
 
 use strict;
 use CGI;                # Object-Oriented version of CGI
-use MD5;
+use Digest::MD5;
 
 
 
@@ -262,7 +265,7 @@ if( $requirePassword ) {
     elsif( $password ne "" ) {
         # check password
 
-        my $md5 = new MD5;
+        my $md5 = new Digest::MD5;
         $md5->add( $password ); 
         my $passwordHash = $md5->hexdigest();
 
