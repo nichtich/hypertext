@@ -31,6 +31,7 @@
 # Added support for profiling.
 # Added a profiler-suggested optimization.
 # Optimized readFileValue to slurp entire file.
+# Optimized getNodeTitle to only read the first line of the file.
 #
 
 
@@ -1512,13 +1513,15 @@ sub getNodeTitle {
         return $title;
     }
     else {
-        my $nodeText = readFileValue( "$dataDirectory/nodes/$nodeID.txt" );
-
-        # split into paragraphs
-        my @nodeElements = split( /\n\n/, $nodeText );
+        open( FILE, "$dataDirectory/nodes/$nodeID.txt" ) or die;
+        flock( FILE, 1 ) or die;
         
-        my $nodeTitle = shift( @nodeElements );
-    
+        # read the first line of the file
+        my $nodeTitle = <FILE>;
+        chomp( $nodeTitle );
+        
+        close( FILE );
+
         return $nodeTitle;
     }
 }
