@@ -36,7 +36,7 @@ my $dataDirectory = "../cgi-data/silk";
 my $scriptURL = "http://localhost/cgi-bin/silk.pl";
 
 # set to 1 to require password, or 0 to allow public access
-my $requirePassword = 1;
+my $requirePassword = 0;
 
 # If a password is required, the password will be set the first
 #   time the silk script is run.  The MD5 hash of the password is stored
