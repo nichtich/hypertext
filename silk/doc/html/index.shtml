@@ -12,12 +12,15 @@ frictionless linking
 
 <TABLE WIDTH=75%>
 <TR><TD>
+
+
 <H1>what is silk?</H1>
 <B>silk</B> is a Web-based hypertext system with a focus on linking.  
 silk's design makes linking as easy and frictionless as possible.
 silk was created as a personal notetaking tool---it is perfect for recording ideas and the connections between them---but it can also be used for mult-user collaboration, much in the same way as a <A HREF="http://c2.com/cgi/wiki?WikiWikiWeb">Wiki</A>.
 <BR>
 <BR>
+
 The core idea is that links are important.  
 A well-linked hypertext can be much more valuable than a poorly-linked hypertext.
 Links add information to hypertext:  they encode associations and relationships.
@@ -26,6 +29,7 @@ In theory, linking is not a difficult task, as it follows directly from our natu
 We find it easy to determine what should be linked.
 Creating and maintaining links, on the other hand, is generally more difficult.<BR>
 <BR>
+
 The best way to understand silk is to try it:  the <A HREF="http://hypertext.sourceforge.net/cgi-bin/silk.pl">silk Sandbox</A> is open to the public.
 
 
@@ -41,31 +45,35 @@ The best way to understand silk is to try it:  the <A HREF="http://hypertext.sou
 <input type="hidden" name="currency_code" value="USD">
 <input type="hidden" name="tax" value="0">
 <input type="hidden" name="custom" value="silk_donate">
-<input type="hidden" name="notify_url" value="http://hypertext.sf.net/cgi-bin/silk/donationTracker.pl">
+<input type="hidden" name="notify_url" value="http://hypertext.sf.net/cgi-bin/silkDonationTracker.pl">
 
 <TABLE BORDER=0 CELLSPACING=5 CELLPADDING=0>
 <TR>
 <TD VALIGN=MIDDLE>Think silk is cool?  Give us a dollar. </TD> 
 <TD VALIGN=MIDDLE><input type="image" src="https://www.paypal.com/images/x-click-but04.gif" border="0" name="submit" alt="Make payments with PayPal - it's fast, free and secure!" ALIGN=MIDDLE></TD>
-<TD VALIGN=MIDDLE>[ <!--#include virtual="/silk/downloadData/downloadCount.html" --> downloads ]<BR>
+<TD VALIGN=MIDDLE>
 [ <!--#include virtual="/silk/donationData/donationCount.html" --> donations totalling $<!--#include virtual="/silk/donationData/overallSum.html" --> ]</TD>
 </TR>
 </TABLE>
 </FORM>
 </CENTER>
 
-<H1>what makes linking difficult?</H1> 
+
+<H1>what makes linking difficult in other systems?</H1> 
 In most hypertext systems, to link to a document, you must first obtain that document's identifier, be it a URL (http://www.somewhere...), a node number, or a camel case document title (CanYouRememberThisTitle).
 Then, you must select or create an appropriate text region as an anchor for the link (for example, <A HREF="http://www.google.com">a piece of text</A> in the middle of your document).
-Finally, you must encode the anchored link using some kind of syntax (&lt;A HREF = "http://www.somewhere...").
+Finally, you must encode the anchored link using some kind of syntax (&lt;A HREF = "http://www.somewhere...").<BR>
+<BR>
+
 These steps take time.
 The time commitment discourages link creation in the first place, not to mention making link maintenence difficult.
 Since most hypertext systems force links to be anchored to text regions, links can clutter the text and make it difficult to read---yet another factor discouraging well-linked hypertexts.
 Furthermore, by forcing links to be anchored, these hypertext systems make bidirectional linking akward at best and impossible at worst.
 
+
 <H1>how does silk make linking easy?</H1>
 In a silk web, an anchorless, bidirectional link can be created with a single mouse click.
-Optional link anchors can be specified around text regions using a straight-forward syntax (three characters to start the link region and four characters to end it).
+Optional link anchors can be specified around text regions using a straight-forward syntax (three characters to start the link region and four characters to end it;  or four characters to automatically insert the destination node's title as the link anchor).
 Internal linking never requires knowlege of document identifiers.
 silk webs also support links to the external Web, which of course require URLs as document identifiers.
 However, a URL can be entered once and used over and over throughout a silk web:  after creating an external link, it can be connected to an internal silk node with a single mouse click.    
@@ -82,13 +90,16 @@ The <A HREF="userGuide.shtml">silk user's guide</A> provides a complete descript
 You need a Web server that supports CGI scripts written in Perl.
 If you have such a Web server, you can probably run silk (if you think you are missing required Perl modules, take a look at the list of <A HREF="requirements.shtml">software requirements</A>).<BR>
 <BR>
+
 <A HREF="">Download the script</A> (v0.1), place it in your server's cgi-bin directory, and make sure your script is executable by your Web server (for example, <TT>chmod o+x silk.pl</TT>).
 You also need to create a directory where silk will store its data (for example, <TT>cgi-data/silk</TT>).
 This data directory needs to be writeable/executable by your Web server.<BR>
 <BR>
+
 Open the silk.pl file in a text editor and configure the various settings that are near the top of the file.
 Comments are included in silk.pl to explain each setting.<BR>
 <BR>
+
 If you have installed CGI scripts in the past, installing silk should be easy.
 If you are unfamiliar with CGI scripts, instructions are available <A HREF="http://www.google.com/search?hl=en&lr=&ie=ISO-8859-1&safe=off&q=install+cgi+script&btnG=Search">elsewhere on the Web</A>.
 
@@ -98,18 +109,20 @@ If you are unfamiliar with CGI scripts, instructions are available <A HREF="http
 All of these services are available through the <A HREF="http://www.sf.net/projects/hypertext">hypertext project page</A> on SourceForge.
 
 
-<H1>what about other hypertext systems?</H1>
+<H1>how does silk compare to other systems?</H1>
 
 No hypertext system <I>tries</I> to make linking difficult.
 After all, links are what set hypertext apart from plain text.
 However, the fact remains that the act of linking <I>is</I> difficult in most hypertext systems.
 This difficulty may be due to the fact that these systems do not focus on easy linking explicitly.<BR>
 <BR>
+
 Hypertext predates the Web by many years, and many non-Web hypertext systems featured slick graphical interfaces (for example, the ability to drag an animated arrow from one window to another to create a link).
 Most of these non-Web hypertext systems are no longer available, though two such systems are still being developed:  Eastgate Systems distributes both <A HREF="http://www.eastgate.com/Storyspace.html">Storyspace</A> and <A HREF="http://www.eastgate.com/Tinderbox/">Tinderbox</A>, with Tinderbox being their more recent offering.
 Though it is difficult to compare silk's Web-based user interface with Tinderbox's multi-windowed graphical environment, link creation and management in silk is debatably easier (in Tinderbox, a simple operation like deleting a link requires hunting through a menu, manipulating a dialog box, and finally right-clicking to uncover the delete operation).
 Of course, silk pales in many ways compared to the feature-rich Tinderbox, but what is a hypertext system for if it's not for linking?<BR>
 <BR>
+
 More fair comparissons can be drawn between silk and other Web-based hypertext systems.
 First, consider the Web itself.
 To create a Web link, you first need to obtain the URL of the destination page---URLs are often complicated enough to make memorization impractical, so a copy-and-paste operation is usually necessary.
@@ -135,12 +148,14 @@ If SamplePageTitle does not fit well into the flow of your text, you cannot make
 Successors to the original Wiki system allow custom link anchor text but introduce semi-cumbersome syntax to support it (though nothing can compare to HTML's linking syntax).
 Finally, despite the fact that Wikis are self-contained systems, their links are unidirectional.<BR>
 <BR>
+
 Compared to linking in a Wiki, linking in silk is much easier.
 First, you never need to know a node identifier (for example, a title) to create a silk link:  you simply add the destination node to the list of hot links.
 Since links do not depend on node titles, you can change the title of any node at any time, and since all links are bidirectional, link lists always show the current titles of the nodes they contain.
 Second, anchoring links inline is optional, so links can be quickly created without fitting them into the textual flow of the source or destination node.
 On the other hand, Wikis focus on quick text formatting, with easy syntax for font styles, lists, and indentation---silk focuses exclusively on linking and does not support formatting text.<BR>
 <BR>
+
 Another interesting Web-based hypertext system is <A HREF="http://www.everything2.com/">Everything2</A>.
 Links can be created explicitly in Everything2 nodes with title-based syntax, similar to that of a Wiki, with brackets around phrases, <TT>[like this]</TT>.
 Everything2 adds a unique twist:  clicking on a link for nonexistane node (for example, if there is no node called "like this") performs a search for the link words.
@@ -151,6 +166,7 @@ Because soft links are sorted and potentially dropped according to popularity, a
 For example, though a node about the Postmaster may have a single soft link to a node about Mickey Mouse, the Mickey Mouse node's soft link list may be full of popular soft links (the limit seems to be 48 links) and have no room for a link back to the Postmaster node.
 Soft links in Everything2 can best be described as <I>semi-bidirectional</I>.<BR>
 <BR>
+
 Despite its various linking innovations, Everything2 bears many of the same obstacles to linking that Wikis do.
 Title-based linking requires knowing the title of the target node and typing it correctly (a point emphasized throughtout the Everything2 documentation:  the mantra seems to be, "Check your links for typos.").
 A partial solution to this problem is Everything2's fall-back to searching for unknown link words, but it is not a functional fix (linking to Potsmaster by accident may produce amusing search results, but the intended connection is still lost).
@@ -158,7 +174,69 @@ Nothing could be "easier" than an automatic link creation mechanism like soft li
 However, they do not reduce the friction of intentional linking at all, and they often capture inappropriate, unintential associations.
 For example, while you read a node about the Postmaster, the phone rings and a conversation about a broken air conditioner ensues.
 After the phone call, you perform a search for "air conditioner repair," accidentally creating a useless soft link.
-  
+
+<H1>can you give a quantitative comparison?</H1>
+Perhaps we should be counting the mouse clicks and keystrokes (user actions) needed to create a link.<BR>
+<BR>
+To be fair, we will only count user actions for unidirectional links, since silk makes bidirectional links for free and has an unfair advantage.  We can construct a linking scenareo for our comparison.
+Suppose we have a text page called <I>Home Page</I> and another page called <I>Test Page</I>, and suppose that we already have both pages in front of us (so we will not count actions needed to locate the pages in the first place).
+We want to create a link from <I>Home Page</I> to <I>Test Page</I>.
+For the Web portion of the comparison, we will assume that <I>Test Page</I> has a rather short URL, <I>http://www.test.com/page.html</I>, and we will give the Web a generous handicap:  we will allow cut-and-paste operations instead of forcing the URL to be typed out.
+We will also ignore the user actions involved in accessing pages or saving changes (mouse clicks needed to switch windows or move between pages, operations needed to upload a page to a Web server, etc.).<BR>
+<BR>
+
+For the Web, creating the link would require the following operations:
+<CENTER>
+<TABLE BORDER=1 WIDTH=75%>
+<TR><TD>copy <I>Test Page</I>'s URL</TD><TD>1 keystroke</TD></TR>
+<TR><TD>position the cursor at the start of the anchor text in <I>Home Page</I></TD><TD>1 mouse click</TD></TR>
+<TR><TD>type <TT>&lt;A HREF="</TT> <!-- "--></TD><TD>9 keystrokes</TD></TR>
+<TR><TD>paste <I>Test Page</I>'s URL</TD><TD>1 keystroke</TD></TR>
+<TR><TD>type <TT>"&gt;</TT> <!-- "--></TD><TD>2 keystrokes</TD></TR>
+<TR><TD>position the cursor at the end of the anchor text</TD><TD>1 mouse click</TD></TR>
+<TR><TD>type <TT>&lt;/A&gt;</TT></TD><TD>4 keystrokes</TD></TR>
+<TR><TD><B>total</B></TD><TD><B>19 user actions</B></TD></TR>
+</TABLE>
+</CENTER><BR>
+
+For a Wiki, creating the link would require the following operations:
+<CENTER>
+<TABLE BORDER=1 WIDTH=75%>
+<TR><TD>position the cursor in the text of <I>Home Page</I></TD><TD>1 mouse click</TD></TR>
+<TR><TD>type <TT>TestPage</TT></TD><TD>8 keystrokes</TD></TR>
+<TR><TD><B>total</B></TD><TD><B>9 user actions</B></TD></TR>
+</TABLE>
+</CENTER><BR>
+
+For Everything2, creating the link would require the following operations:
+<CENTER>
+<TABLE BORDER=1 WIDTH=75%>
+<TR><TD>position the cursor in the text of <I>Home Page</I></TD><TD>1 mouse click</TD></TR>
+<TR><TD>type <TT>[Test Page]</TT></TD><TD>10 keystrokes</TD></TR>
+<TR><TD><B>total</B></TD><TD><B>11 user actions</B></TD></TR>
+</TABLE>
+</CENTER><BR>
+
+For Tinderbox, creating the link would require the following operations:
+<CENTER>
+<TABLE BORDER=1 WIDTH=75%>
+<TR><TD>click the link start widget on <I>Home Page</I></TD><TD>1 mouse click</TD></TR>
+<TR><TD>drag the link arrow to <I>Test Page</I> and release the mouse</TD><TD>1 mouse drag/release</TD></TR>
+<TR><TD>click the "OK" button to dismiss the link dialog box</TD><TD>1 mouse click</TD></TR>
+<TR><TD><B>total</B></TD><TD><B>3 user actions</B></TD></TR>
+</TABLE>
+</CENTER><BR>
+
+For silk, creating the link would require the following operations:
+<CENTER>
+<TABLE BORDER=1 WIDTH=75%>
+<TR><TD>click [hot link] on <I>Test Page</I> to add it to the hot link list</TD><TD>1 mouse click</TD></TR>
+<TR><TD>from <I>Home Page</I>, click [+] next to <I>Test Page</I> in the hot link list</TD><TD>1 mouse click</TD></TR>
+<TR><TD><B>total</B></TD><TD><B>2 user actions</B></TD></TR>
+</TABLE>
+</CENTER>
+
+
 
 <H1>who wrote silk?</H1>
 
