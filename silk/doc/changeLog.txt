@@ -1,0 +1,17 @@
+Version 0.1     2004-April-17
+--Initial release
+
+
+
+Version 0.1.1   2004-April-23
+--Added a version string.
+--Improved security of password hash file.
+--Fixed a few undefined variable warnings.
+--Fixed some wording.
+--Changed login form to POST so that password isn't visible in URL field.
+
+
+
+Version ???     ???
+--Fixed a read-only login bug (if no password hash exists) pointed out 
+  by Sebastien L.
