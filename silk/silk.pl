@@ -38,6 +38,9 @@
 # Added support for restoring from a backup tarball.
 # Fixed some helper-app path bugs.  Made compatible with older CGI.pm
 #
+# 2004-April-9   Jason Rohrer
+# Made tarball processing code cleaner.
+#
 
 
 
@@ -77,22 +80,21 @@ my $requirePassword = 0;
 # (only applies if $requirePassword is set to 1)
 my $allowReadOnlyAccessWithoutPassword = 0;
 
-
-# used for generating data tarballs (for backup purposes)
-my $tarPath = "/bin/tar";
-my $gzipPath = "/bin/gzip";
-my $rmPath = "rm";
+# set to include necessary paths for finding tar, gzip, and rm
+# we cannot use the default PATH because taint checking forbids it
+$ENV{ 'PATH' } = "/bin:/usr/bin:/usr/local/bin";
 
 
 # setup a local error log
 BEGIN {
 
-    # edit this to match $dataDirectory from above
-    my $dataDirectory = "../cgi-data/silk";
+    # location of error log
+    # this script must have permissions to create the error log
+    my $errorLogPath = "../cgi-data/silk_errors.log";
 
     use CGI::Carp qw( carpout );
-    open( LOG, ">>$dataDirectory/errors.log" ) or
-        die( "Unable to open $dataDirectory/errors.log: $!\n" );
+    open( LOG, ">>$errorLogPath" ) or
+        die( "Unable to open $errorLogPath: $!\n" );
     carpout( LOG );
 }
 
@@ -303,52 +305,40 @@ if( $requirePassword and
     printPageFooter();
 }
 elsif( $action eq "getDataTarball" ) {
-    
-    my $oldPath = $ENV{ "PATH" };
-    $ENV{ "PATH" } = "";
 
-    open( TARBALL_READER, 
-          "cd $dataDirectory/..; $tarPath cf - $dataDirectoryName | ".
-          "$gzipPath -f |" );
+    # open a pipe from the tarball creator 
+    open( CREATE_TARBALL_PIPE, 
+          "cd $dataDirectory/..; tar cf - $dataDirectoryName | ".
+          "gzip -f |" );
 
-    while( <TARBALL_READER> ) {
+    while( <CREATE_TARBALL_PIPE> ) {
         print "$_";
     }
-    close( TARBALL_READER );
-
-    $ENV{ "PATH" } = $oldPath;
+    close( CREATE_TARBALL_PIPE );
 }
 elsif( not $readOnlyMode and 
        $action eq "restoreFromDataTarball" ) {
-    
-    my $oldPath = $ENV{ "PATH" };
-    $ENV{ "PATH" } = "";
+
+    # $tarballContents is a file handle
 
     # using upload() instead of param() is safer (deals with errors in a better
     # way), but requires CGI.pm v2.47
     # my $tarballContents = $cgiQuery->upload( "tarball" );
     my $tarballContents = $cgiQuery->param( "tarball" );
 
-    my $tempTarballFile = "$tempDirectory/silk_backup.tar.gz";
+    # clear the data directory
+    `rm -rf $dataDirectory/*`;
 
-    open( TARBALL_WRITER,
-          ">$tempTarballFile" );
+    # open a pipe to the tarball extractor
+    open( EXTRACT_TARBALL_PIPE, "| gzip -dcf | tar x -C $dataDirectory/.." ) 
+        or die "Cannot start gzip/tar pipe process: $!\n";
     
+    # print the tarball to the pipe
     while( <$tarballContents> ) {
-        print TARBALL_WRITER $_;
+        print EXTRACT_TARBALL_PIPE $_;
     }
 
-    close( TARBALL_WRITER );
-
-    # clear the data directory
-    `$rmPath -rf $dataDirectory/*`;
-    
-    # restore from the temp tarball
-    `$gzipPath -dc $tempTarballFile | $tarPath x -C $dataDirectory/..`; 
-    
-    unlink( $tempTarballFile );
-
-    $ENV{ "PATH" } = $oldPath;
+    close( EXTRACT_TARBALL_PIPE );
     
     printStartNode();
 }
