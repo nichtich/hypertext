@@ -50,6 +50,9 @@
 # Changed all quick ref tags to lower case.
 # Fixed bugs in title link creation and removal.
 #
+# 2004-April-17   Jason Rohrer
+# Changed to get the script URL from the CGI interface by default.
+#
 
 
 
@@ -84,7 +87,9 @@ BEGIN {
     $errorLogPath = "../cgi-data/silk_errors.log";
 
     # the external URL for the silk script
-    $scriptURL = "http://hypertext.sourceforge.net/cgi-bin/silk.pl";
+    # leave blank to get the script's URL from the CGI interface
+    # (should leave blank for most setups)
+    $scriptURL = "";
     
 
     # the default values set below will work for you if you are running
@@ -168,6 +173,15 @@ my @hotLinkQuickReferenceTagMap =
 
 # start processing the inbound CGI query
 my $cgiQuery = CGI->new();
+
+
+# if we don't have a script URL set
+if( $scriptURL eq "" ) {    
+    
+    # default to getting the URL from the query
+    $scriptURL = $cgiQuery->url();
+}
+
 
 # always set the Pragma: no-cache directive
 # this feature seems to be undocumented...
