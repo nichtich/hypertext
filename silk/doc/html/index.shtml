@@ -327,6 +327,17 @@ The following graph summarizes these results, showing how the total number of us
 </CENTER> 
 
 
+<H1>what is silk's data model?</H1>
+
+The containment model for silk is shown in the following diagram:
+
+<CENTER>
+<IMG SRC="images/containmentModel.png" WIDTH=400 HEIGHT=259>
+</CENTER>
+
+Containment modeling was developed by <A HREF="http://www.soe.ucsc.edu/~ejw/">Jim Whitehead</A>.
+Details can be found in <A HREF="http://www.soe.ucsc.edu/~ejw/papers/whitehead_ht02.pdf">this paper</A>, with further refinements described in <A HREF="http://www.soe.ucsc.edu/~ejw/papers/gordon-whitehead-mis02.pdf">this paper</A>.
+
 
 <H1>who wrote silk?</H1>
 
