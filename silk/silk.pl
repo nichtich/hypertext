@@ -53,6 +53,11 @@
 # 2004-April-17   Jason Rohrer
 # Changed to get the script URL from the CGI interface by default.
 #
+# 2004-April-23   Jason Rohrer
+# Fixed a few undefined variable warnings.
+# Fixed some wording.
+# Changed login form to POST so that password isn't visible in URL field.
+#
 
 
 
@@ -199,7 +204,7 @@ my $action = $cgiQuery->param( "action" ) || '';
 # get the password cookie, if it exists
 my $passwordCookie = $cgiQuery->cookie( "password" ) || '';
 
-my $password;
+my $password = "";
 my $passwordCorrect = 0;
 my $readOnlyMode = 0;
 
@@ -213,7 +218,7 @@ if( $requirePassword ) {
     elsif( $action eq "login" ) {
         $password = $cgiQuery->param( "password" ) || '';
     }
-    
+
     # check if read only mode is requested
     if( $password eq "readOnly" ) {
         if( $allowReadOnlyAccessWithoutPassword ) {
@@ -332,7 +337,7 @@ if( $requirePassword and
     if( not $passwordHashExists ) {
         print "first login -- enter a new password<BR><BR>\n";
     }
-    print "<FORM ACTION=\"$scriptURL\">\n";
+    print "<FORM ACTION=\"$scriptURL\" METHOD=POST>\n";
 
     print "<INPUT TYPE=\"hidden\" " . 
         "NAME=\"action\" VALUE=\"login\">\n";
@@ -395,13 +400,18 @@ elsif( $action eq "showNode"
        or $readOnlyMode
        or $action eq "showStartNode" ) {
     # only allow the showNode action in read-only mode
-
+    
     my $nodeID = $cgiQuery->param( "nodeID" );
 
-    # untaint
-    # may have x-prefix for an external link ID
-    ( $nodeID ) = ( $nodeID =~ /(x?\d+)/ );
-    
+    if( not defined( $nodeID ) ) {
+        $nodeID = "";
+    }
+    else {
+        # untaint
+        # may have x-prefix for an external link ID
+        ( $nodeID ) = ( $nodeID =~ /(x?\d+)/ );
+    }
+
     if( $nodeID eq "" 
         or $action eq "showStartNode" ) {
         
@@ -753,7 +763,7 @@ elsif( $action eq "editExternalLink" or
 else {  
     #default, show node form
     
-    printEditNodeForm();
+    printEditNodeForm( 0 );
 } 
 
 
@@ -778,7 +788,7 @@ sub printStartNode {
         # we don't even have a start node
         # default to the node creation form 
         
-        printEditNodeForm();
+        printEditNodeForm( 1 );
     }
 }
 
@@ -788,9 +798,15 @@ sub printStartNode {
 # Prints the form for editing a node.
 #
 # Parses CGI parameters to select which node to edit.
+#
+# @param0 set to 1 to indicate that we are editing the first node, or 
+#   0 to show the standard node edit form
 ##
 sub printEditNodeForm {
     
+    my $isFirstNode = $_[0];
+
+
     # lock to ensure integrity, including
     # --protect update of next node ID file
     # --ensure that quick ref maps are consistent with eachother
@@ -913,8 +929,13 @@ sub printEditNodeForm {
     my $quickRefMap = join( ";", @quickRefMapParts );
 
 
-    printPageHeader( "edit node" );
-    
+    if( $isFirstNode ) {
+        printPageHeader( "edit start node" );
+    }
+    else {
+        printPageHeader( "edit node" );
+    }
+
     print "<TABLE CELLPADDING=0 CELLSPACING=0 BORDER=0 WIDTH=100%>\n";
     
     print "<TR><TD VALIGN=TOP ALIGN=CENTER WIDTH=75%>\n";
@@ -927,7 +948,13 @@ sub printEditNodeForm {
     print "<CENTER><FORM METHOD=POST ACTION=\"$scriptURL\">\n";
 
     print "<TABLE BORDER=0><TR><TD COLSPAN=2>\n";
-    print "<FONT SIZE=5>edit node</FONT><BR>\n";
+    
+    if( $isFirstNode ) {
+        print "<FONT SIZE=5>edit start node</FONT><BR>\n";
+    }
+    else {
+        print "<FONT SIZE=5>edit node</FONT><BR>\n";
+    }
 
     print "<INPUT TYPE=\"hidden\" NAME=\"action\" VALUE=\"updateNode\">\n";
     print "<INPUT TYPE=\"hidden\" NAME=\"nodeID\" VALUE=\"$nodeID\">\n";
@@ -950,7 +977,7 @@ sub printEditNodeForm {
     # editing instructions 
     
     print "separate paragraphs with a blank line.\n".
-          "The first paragraph will be used as the title of your document.".
+          "The first paragraph will be used as the node title.".
           "<BR><BR>\n";
     print "the red characters in the link lists ".
           "(<FONT COLOR=#FF0000>$nodeLinkQuickReferenceTagMap[0]</FONT>, ".
