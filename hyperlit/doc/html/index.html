@@ -1,0 +1,89 @@
+<HTML>
+
+<HEAD>
+<TITLE>hyperlit</TITLE>
+</HEAD>
+
+<BODY>
+
+<H1>hyperlit:  a literary hypertext authoring system</H1>
+-or-<BR>
+what kind of monolithic hypertext system can be created in a single night of coding?
+
+
+<H2>what is it?</H2>
+a small Java application for authoring literary hypertext.
+
+
+<H2>what is it not?</H2>
+hyperlit is similar (in a very weak sense) to <A HREF="http://www.eastgate.com/Storyspace.html">Storyspace</A>.  However, it is not as powerful as story space in that it does not provide spatial views of a hypertext.  Then again, Storyspace costs $295 and has been developed over many years, while hyperlit is free and was developed in a single night.
+
+<H2>what can it do?</H2>
+hyperlit is expressive enough to write substantial literary hypertext, as long as the final product does not require a spatial view.  For example, one could use it to author a work as substantial as <A HREF="http://www.eastgate.com/catalog/Afternoon.html">"afternoon, a story"</A>, the flagship hypertext for Storyspace.
+
+<H2>what else can it do?</H2>
+hyperlit can export hypertext lexia as a network of HTML pages for the web.
+
+<H2>where is an example?</H2>
+<A HREF="http://hcsoftware.sourceforge.net/jason-rohrer/writing/stories/six_and_a_half_seconds/">"six and a half seconds, a story"</A> was authored with hyperlit and has been exported for the web.
+
+<H2>where can I get it?</H2>
+--Windows download:  <A HREF="hyperlit.zip">hyperlit.zip</A><BR>
+--Unix/Linux/OSX download:  <A HREF="hyperlit.tar.gz">hyperlit.tar.gz</A><BR>
+
+
+<H2>what do I need to run it?</H2>
+hyperlit requires Java 1.2 or later.<BR>
+(you must be able to type "java" at the command prompt without error to run hyperlit.)
+
+
+<H2>how do I run it?</H2>
+download and extract hyperlit.  In the "hyperlit" directory, run <B>runHyperlit.bat</B> (for Windows) or <B>runHyperlit</B> (for Unix/Linux/OSX), followed by the name of a lexia file that you want to edit (for example, test.lex, to start editing a new lexia file called "test.lex").  This script will launch hyperlit.<BR>
+<BR>
+if you get an error when running these scripts, make sure Java 1.2 is installed.  Try running <B>java -version</B> to check.<BR>
+<BR>
+
+<CENTER>
+<IMG SRC="hyperlit.gif">
+</CENTER>
+
+<H2>how do I use it?</H2>
+
+hyperlit is designed to be controlled almost entirely with the keyboard (though all commands can also be invoked using the <B>operations</B> menu) .  You can use the arrow keys to move around in a lexia and various action keys to manipulate the word that is under the cursor (called the <B>current word</B>).<BR>
+<BR>
+<B>ctrl-N</B> spawns a new lexia linked to the current word and switches to the new lexia for editing.<BR>
+<BR>
+<B>ctrl-T</B> traverses the link for the current word, moving to the lexia that is linked.  Traversing only works if the current word is underlined (in other words, is a link).<BR>
+<BR>
+<B>ctrl-L</B> links to an existing lexia, with the start point set on the existing word.  You must hit ctrl-L again to finish the link.  Whatever lexia you are in when you hit ctrl-L the second time will be the destination of the link.<BR>
+<BR>
+<B>ctrl-U</B> clears the link from the current word.<BR>
+<BR>
+<B>ctrl-Page Up</B> goes to the previous lexia in the lexia list.<BR>
+<BR>
+<B>ctrl-Page Down</B> goes to the next lexia in the lexia list.<BR>
+<BR>
+<B>ctrl-S</B> saves all lexia to the file specified at startup.<BR>
+<BR>
+Three other commands are available only through the <B>operations</B> menu:
+<BR>
+<B>delete lexia</B> deletes the current lexia.<BR>
+<BR>
+<B>output html</B> outputs the current lexia set to a folder of HTML files.<BR>
+<BR>
+<B>quit</B> quits hyperlit.<BR>
+
+
+<H2>where do I get the source?</H2>
+The source code is included with the download.
+
+
+<H2>whose is responsible?</H2>
+hyperlit was coded in a single night by <A HREF="http://www.jasonrohrer.n3.net">Jason Rohrer</A>.
+
+
+</BODY>
+
+</HTML>
+
+

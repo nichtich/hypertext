@@ -1,0 +1,3 @@
+cd ..
+jikes hyperlit/*.java
+cd hyperlit

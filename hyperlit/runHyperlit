@@ -1,0 +1,9 @@
+if test -z $1
+then
+    echo "Usage:"
+    echo "    runHyperlit lex_file_name"
+    echo "Example:"
+    echo "    runHyperlit temp.lex" 
+else
+    java -cp .. hyperlit.HyperlitFrame $1
+fi
