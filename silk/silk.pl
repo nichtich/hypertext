@@ -47,6 +47,7 @@
 #
 # 2004-April-12   Jason Rohrer
 # Added support for inline title links.
+# Changed all quick ref tags to lower case.
 #
 
 
@@ -158,9 +159,9 @@ setupDataDirectory();
 # we assume, in the code below, that there are at least 3 entries in
 # @nodeLinkQuickReferenceTagMap
 my @nodeLinkQuickReferenceTagMap = 
-    ( "C", "D", "E", "F", "G", "H", "J", "K", "L", "M", "N" );
+    ( "c", "d", "e", "f", "g", "h", "j", "k", "l", "m", "n" );
 my @hotLinkQuickReferenceTagMap = 
-    ( "O", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z" );
+    ( "o", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z" );
 
 
 
@@ -577,18 +578,18 @@ elsif( $action eq "updateNode" ) {
             # make sure that this node is on our link list
             makeLink( $nodeID, $linkID );
 
-            # replace quick ref tags (<D></D>) with direct links (<13></13>)
+            # replace quick ref tags (<d></d>) with direct links (<13></13>)
             # allow whitespace in tag (\s*)
             $nodeText =~
                 s/<\s*$tag\s*>/<$linkID>/gi;
             $nodeText =~
                 s/<\s*\/\s*$tag\s*>/<\/$linkID>/gi;
             
-            # replaced inlined quick ref title tags (<D T>) with inlined 
-            # direct title tags (<13 T>)
+            # replaced inlined quick ref title tags (<d t>) with inlined 
+            # direct title tags (<13 t>)
             # allow extra whitespace in tag (\s* and \s+)
             $nodeText =~
-                s/<\s*$tag\s+T\s*>/<$linkID T>/gi;
+                s/<\s*$tag\s+t\s*>/<$linkID t>/gi;
 
             
         }        
@@ -809,16 +810,16 @@ sub printEditNodeForm {
                 $quickRefTag = $linkIndex;
             }
                 
-            # replace direct links (<13></13>) with quick ref tags (<D></D>) 
+            # replace direct links (<13></13>) with quick ref tags (<d></d>) 
             $nodeText =~
                 s/<$link>/<$quickRefTag>/g;
             $nodeText =~
                 s/<\/$link>/<\/$quickRefTag>/g;
             
-            # replaced inlined title tags (<13 T>) with quick ref inlined 
-            # title tags (<D T>)
+            # replaced inlined title tags (<13 t>) with quick ref inlined 
+            # title tags (<d t>)
             $nodeText =~
-                s/<$link T>/<$quickRefTag T>/g;
+                s/<$link t>/<$quickRefTag t>/gi;
 
             $linkIndex ++;
         }
@@ -947,7 +948,7 @@ sub printEditNodeForm {
           "&lt;/$nodeLinkQuickReferenceTagMap[0]&gt;</TT>.\n".
           "You can automatically insert the destination node's title as ".
           "a link in your node like this ".
-          "<TT>&lt;$nodeLinkQuickReferenceTagMap[0] T&gt;</TT>.\n";    
+          "<TT>&lt;$nodeLinkQuickReferenceTagMap[0] t&gt;</TT>.\n";    
     
 
     print "</TD></TR></TABLE>\n";
@@ -1292,26 +1293,26 @@ sub printNode {
             s/<\/x\d+>/<\/FONT><\/A>/g;
         
         
-        # search for inlined title links like <13 T>, and 
+        # search for inlined title links like <13 t>, and 
         # replace them with HTML links anchored to titles.
         # the /e regexp modifier forces evaluation of the right side, so
         # we can call the getNodeTitle subroutine
         $paragraph =~ 
-            s/<(\d+) T>/
+            s/<(\d+) t>/
               "<A HREF=\"$scriptURL?action=showNode&nodeID=$1\">" . 
               getNodeTitle( $1 ) . 
-              "<\/A>"/ge;
+              "<\/A>"/gei;
 
-        # search for inlined title external links like <x13 T>, and 
+        # search for inlined title external links like <x13 t>, and 
         # replace them with colored HTML links anchored to titles.
         # again, the /e modifier allows us to call subroutines
         $paragraph =~ 
-            s/<x(\d+) T>/
+            s/<x(\d+) t>/
               "<A HREF=\"" .
               getExternalLinkURL( $1 ) .
               "\"><FONT COLOR=\#00A000>" .
               getNodeTitle( "x$1" ) .
-              "<\/FONT><\/A>"/ge;
+              "<\/FONT><\/A>"/gei;
 
 
         print "$paragraph<BR><BR>\n";        
