@@ -9,9 +9,63 @@
 <CENTER>
 <IMG SRC="images/logo.png" WIDTH=150 HEIGHT=76><BR>
 frictionless linking
-</CENTER>
 
-<B>silk</B> is a web-based hypertext system with a focus on linking.
+<TABLE WIDTH=75%>
+<TR><TD>
+<H1>what is silk?</H1>
+<B>silk</B> is a web-based hypertext system with a focus on linking.  
+silk's design makes linking as easy and frictionless as possible.
+silk was created as a personal notetaking tool---it is perfect for recording ideas and the connections between them---but it can also be used for mult-user collaboration, much in the same way as a <A HREF="http://c2.com/cgi/wiki?WikiWikiWeb">Wiki</A>.
+<BR>
+<BR>
+The core idea is that links are important.  
+A well-linked hypertext can be much more valuable than a poorly-linked hypertext.
+Links add information to hypertext:  they encode associations and relationships.
+We can include this information explicitly in the text itself, but links are more useful than pure-text references because they are much easier to follow.
+In theory, linking is not a difficult task, as it follows directly from our natural inclination to notice connections between pieces of information.
+We find it easy to determine what should be linked.
+Creating and maintaining links, on the other hand, is generally more difficult.<BR>
+<BR>
+The best way to understand silk is to try it:  the <A HREF="http://hypertext.sourceforge.net/cgi-bin/silk.pl">silk Sandbox</A> is open to the public.
+
+<H1>what makes linking difficult?</H1> 
+In most hypertext systems, to link to a document, you must first obtain that document's identifier, be it a URL (http://www.somewhere...), a node number, or a camel case document title (CanYouRememberThisTitle).
+Then, you must select or create an appropriate text region as an anchor for the link (for example, <A HREF="http://www.google.com">a piece of text</A> in the middle of your document).
+Finally, you must encode the anchored link using some kind of syntax (&lt;A HREF = "http://www.somewhere...").
+These steps take time.
+The time commitment discourages link creation in the first place, not to mention making link maintenence difficult.
+Since most hypertext systems force links to be anchored to text regions, links can clutter the text and make it difficult to read---yet another factor discouraging well-linked hypertexts.
+Furthermore, by forcing links to be anchored, these hypertext systems make bidirectional linking akward at best and impossible at worst.
+
+<H1>how does silk make linking easy?</H1>
+In a silk web, an anchorless, bidirectional link can be created with a single mouse click.
+Optional link anchors can be specified around text regions using a straight-forward syntax (three characters to start the link region and four characters to end it).
+Internal linking never requires knowlege of document identifiers.
+silk webs also support links to the external web, which of course require URLs as document identifiers.
+However, a URL can be entered once and used over and over throughout a silk web:  after creating an external link, it can be connected to an internal silk node with a single mouse click.    
+
+
+<H1>how do i use silk?</H1>
+
+Though silk was designed to be easy to use and understand, there are a few subtleties.
+The <A HREF="userGuide.shtml">silk User's Guide</A> provides a complete description of the various features. 
+
+
+<H1>how can i run my own silk web?</H1>
+
+You need a web server that supports CGI scripts written in Perl.
+If you have such a web server, you can probably run silk (if you think you are missing required Perl modules, take a look at the list of <A HREF="requirements.shtml">software requirements</A>).<BR>
+<BR>
+<A HREF="">Download the script</A> (v0.1), place it in your server's cgi-bin directory, and make sure your script is executable by your web server (for example, <TT>chmod o+x silk.pl</TT>).
+You also need to create a directory where silk will store its data (for example, <TT>cgi-data/silk</TT>).
+This data directory needs to be writeable/executable by your web server.
+ 
+  
+
+
+</TD></TR>
+</TABLE>
+</CENTER>
 
 <BODY>
 </HTML>

@@ -41,51 +41,90 @@
 # Removed settings for SmallProf.
 # Changed settings to match SourceForge silk sandbox setup.
 #
+# 2004-April-11   Jason Rohrer
+# Made user options cleaner.
+#
 
 
 
-# settings that can be customized to a specific system setup
-
-# where silk will store its data files.
-# must be writable to the process that runs CGI scripts on your web server
-# you should also edit the $dataDirectory variable for the error log below
-my $dataDirectory = "../cgi-data/silk";
-
-# the name of the data directory.
-# in other words, the last step in the data directory path
-my $dataDirectoryName = "silk";
-
-# the external URL for the silk script
-my $scriptURL = "http://hypertext.sourceforge.net/cgi-bin/silk.pl";
-
-# set to 1 to require password, or 0 to allow public access
-my $requirePassword = 0;
-
-# If a password is required, the password will be requested and set the first
-#   time the silk script is run.  The MD5 hash of the password is stored
-#   in the "password.md5" file in the data directory.
-# To reset the password (so that the script asks for it again)
-#   delete the password.md5 file.
-# For best security, manually make password.md5 read-only after it has been
-#   created by the script (especially if you are using a shared web server
-#   that runs CGI scripts as "nobody")
-
-# set to 1 to allow non-authenticated (no password) read-only access
-# (only applies if $requirePassword is set to 1)
-my $allowReadOnlyAccessWithoutPassword = 0;
-
-# set to include necessary paths for finding tar, gzip, and rm
-# we cannot use the default PATH because taint checking forbids it
-$ENV{ 'PATH' } = "/bin:/usr/bin:/usr/local/bin";
+# user options can be customized to a specific system setup
+# options are listed here, but set below, after BEGIN {
+my $dataDirectory;
+my $dataDirectoryName;
+my $scriptURL;
+my $requirePassword;
+my $allowReadOnlyAccessWithoutPassword;
+my $allowTarballBackupOperations;
+my $errorLogPath;
 
 
-# setup a local error log
 BEGIN {
+    
+    #### USER OPTIONS START HERE ####
 
-    # location of error log
+    # you probably need to set the following four options for your system
+
+    # where silk will store its data files.
+    # must be writable to the process that runs CGI scripts on your web server
+    # you should also edit the $dataDirectory variable for the error log below
+    $dataDirectory = "../cgi-data/silk";
+
+    # the name of the data directory.
+    # in other words, the last step in the data directory path
+    $dataDirectoryName = "silk";
+    
+    # location of the error log
     # this script must have permissions to create the error log
-    my $errorLogPath = "../cgi-data/silk_errors.log";
+    $errorLogPath = "../cgi-data/silk_errors.log";
 
+    # the external URL for the silk script
+    $scriptURL = "http://hypertext.sourceforge.net/cgi-bin/silk.pl";
+    
+
+    # the default values set below will work for you if you are running
+    # a public silk web
+
+
+    # set to 1 to require password, or 0 to allow public access
+    $requirePassword = 0;
+
+    # If a password is required, the password will be requested and set the 
+    #   first time the silk script is run.  The MD5 hash of the password is 
+    #   stored in the "password.md5" file in the data directory.
+    # To reset the password (so that the script asks for it again)
+    #   delete the password.md5 file.
+    # For best security, manually make password.md5 read-only after it has been
+    #   created by the script (especially if you are using a shared web server
+    #   that runs CGI scripts as "nobody")
+
+    # set to 1 to allow non-authenticated (no password) read-only access
+    # (only applies if $requirePassword is set to 1)
+    $allowReadOnlyAccessWithoutPassword = 0;
+
+    # set to 1 to allow backup/restore from tarball
+    # should probably be disabled for public silk webs 
+    $allowTarballBackupOperations = 0;
+
+    # set to include necessary paths for finding tar, gzip, and rm
+    # we cannot use the default PATH because taint checking forbids it
+    $ENV{ 'PATH' } = "/bin:/usr/bin:/usr/local/bin";
+
+
+
+    # end of customizable settings
+
+
+    #### NO USER OPTIONS BELOW HERE ####
+
+
+
+
+    # setup a local error log
+    # we use a BEGIN block for all of these settings so that the error log
+    # can catch compilation errors (BEGIN blocks are executed at compile time)
+    # the settings are inside the BEGIN block too so that the $errorLogPath
+    # can be one of the settings (better to have all settings inside the same
+    # block, for consistency)
     use CGI::Carp qw( carpout );
     open( LOG, ">>$errorLogPath" ) or
         die( "Unable to open $errorLogPath: $!\n" );
@@ -93,12 +132,11 @@ BEGIN {
 }
 
 
-# end of customizable settings
 
 
 
 use strict;
-use CGI;                # Object-Oriented
+use CGI;                # Object-Oriented version of CGI
 use MD5;
 
 
@@ -289,7 +327,7 @@ if( $requirePassword and
 
     printPageFooter();
 }
-elsif( $action eq "getDataTarball" ) {
+elsif( $allowTarballBackupOperations and $action eq "getDataTarball" ) {
 
     # open a pipe from the tarball creator 
     open( CREATE_TARBALL_PIPE, 
@@ -301,7 +339,8 @@ elsif( $action eq "getDataTarball" ) {
     }
     close( CREATE_TARBALL_PIPE );
 }
-elsif( not $readOnlyMode and 
+elsif( $allowTarballBackupOperations and 
+       not $readOnlyMode and 
        $action eq "restoreFromDataTarball" ) {
 
     # $tarballContents is a file handle
@@ -1628,17 +1667,20 @@ sub printPageHeader {
 sub printPageFooter {    
     print "<BR><TABLE BORDER=0 WIDTH=100%><TR>\n";
 
-    if( not $requirePassword 
-        or ( $requirePassword and $passwordCorrect )
-        or $readOnlyMode ) {
-        print "<TD ALIGN=RIGHT><A HREF=\"$scriptURL?action=getDataTarball\">".
+    if( $allowTarballBackupOperations ) {
+        if( not $requirePassword 
+            or ( $requirePassword and $passwordCorrect )
+            or $readOnlyMode ) {
+            print 
+              "<TD ALIGN=RIGHT><A HREF=\"$scriptURL?action=getDataTarball\">".
               "get backup tarball</A><BR>\n";
-        if( not $readOnlyMode ) {
-            print "<A HREF=\"$scriptURL?action=showRestoreForm\">".
-                "restore from tarball</A></TD>\n";
-        }
-        else {
-            print "</TD>\n";
+            if( not $readOnlyMode ) {
+                print "<A HREF=\"$scriptURL?action=showRestoreForm\">".
+                      "restore from tarball</A></TD>\n";
+            }
+            else {
+                print "</TD>\n";
+            }
         }
     }
 
