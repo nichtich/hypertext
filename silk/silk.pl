@@ -43,6 +43,7 @@
 #
 # 2004-April-11   Jason Rohrer
 # Made user options cleaner.
+# Made quickref tags color.  Added editing instructions.
 #
 
 
@@ -150,6 +151,9 @@ setupDataDirectory();
 
 
 # map for quick-reference link tags
+
+# we assume, in the code below, that there are at least 3 entries in
+# @nodeLinkQuickReferenceTagMap
 my @nodeLinkQuickReferenceTagMap = 
     ( "C", "D", "E", "F", "G", "H", "J", "K", "L", "M", "N" );
 my @hotLinkQuickReferenceTagMap = 
@@ -889,7 +893,7 @@ sub printEditNodeForm {
     print "<TR><TD>\n";
 
 
-    print "<FORM METHOD=POST ACTION=\"$scriptURL\">\n";
+    print "<CENTER><FORM METHOD=POST ACTION=\"$scriptURL\">\n";
 
     print "<TABLE BORDER=0><TR><TD COLSPAN=2>\n";
     print "<FONT SIZE=5>edit node</FONT><BR>\n";
@@ -909,8 +913,23 @@ sub printEditNodeForm {
           "<TD ALIGN=RIGHT>".
           "<INPUT TYPE=submit VALUE=\"update\" NAME=\"buttonUpdate\">".
           "</TD></TR></TABLE>\n";
+    
+    print "</FORM></CENTER>\n";
 
-    print "</FORM>\n";
+    # editing instructions 
+    
+    print "separate paragraphs with a blank line.\n".
+          "The first paragraph will be used as the title of your document.".
+          "<BR><BR>\n";
+    print "the red characters in the link lists ".
+          "(<FONT COLOR=#FF0000>$nodeLinkQuickReferenceTagMap[0]</FONT>, ".
+          "<FONT COLOR=#FF0000>$nodeLinkQuickReferenceTagMap[1]</FONT>, ".
+          "<FONT COLOR=#FF0000>$nodeLinkQuickReferenceTagMap[2]</FONT>, ".
+          "etc.) ".
+          "are quick reference tags for anchoring inline links.\n".
+          "You can create an inline link using one of these tags ".
+          "<TT>&lt;$nodeLinkQuickReferenceTagMap[0]&gt;like this".
+          "&lt;/$nodeLinkQuickReferenceTagMap[0]&gt;</TT>.\n";    
     
 
     print "</TD></TR></TABLE>\n";
@@ -1359,18 +1378,21 @@ sub printNodeLinks {
             print "<TR>";
 
             if( $showEnumeration ) {
-                print "<TD VALIGN=MIDDLE>";
+                
+                
+                my $quickRefTag;
                 if( $linkNumber < scalar( @nodeLinkQuickReferenceTagMap ) ) {
                     # we have enough quick reference tags numbers to tag this
                     # link
-                    my $tag = $nodeLinkQuickReferenceTagMap[$linkNumber]; 
-                    print "$tag";
+                    $quickRefTag = $nodeLinkQuickReferenceTagMap[$linkNumber]; 
                 }
                 else {
                     # use the link number as the quick ref tag 
-                    print "$linkNumber";
+                    $quickRefTag = $linkNumber;
                 }
-                print "</TD>";
+                
+                print "<TD VALIGN=MIDDLE><FONT COLOR=#FF0000>$quickRefTag".
+                      "</FONT></TD>";
             }
             if( not $readOnlyMode ) {
                 print "<TD VALIGN=MIDDLE>" .
@@ -1538,18 +1560,20 @@ sub printHotLinks {
             print "<TR>";
 
             if( $showEnumeration ) {
-                print "<TD VALIGN=MIDDLE>";
+                my $quickRefTag;
+
                 if( $linkNumber < scalar( @hotLinkQuickReferenceTagMap ) ) {
                     # we have enough quick reference tags numbers to tag this
                     # link
-                    my $tag = $hotLinkQuickReferenceTagMap[$linkNumber]; 
-                    print "$tag";
+                    $quickRefTag = $hotLinkQuickReferenceTagMap[$linkNumber]; 
                 }
                 else {
                     # use the H-prefixed link number as the quick ref tag 
-                    print "H$linkNumber";
+                    $quickRefTag = "H$linkNumber";
                 }
-                print "</TD>";
+                
+                print "<TD VALIGN=MIDDLE><FONT COLOR=#FF0000>$quickRefTag".
+                      "</FONT></TD>";
             }
 
 
