@@ -161,7 +161,7 @@ Linking is not the only operation that is cumbersome on the Web:  page creation,
 <A HREF="http://c2.com/cgi/wiki?WikiWikiWeb">Wikis</A> were developed in response to this problem, and they focus on making web maintenance quick and easy.
 Part of the Wiki package is simplified linking:  creating an internal link is as easy as typing the destination page's title in camel case (for example, a SamplePageTitle).
 For people used to the cumbersome HTML linking syntax, this simplified syntax is a breath of fresh air.
-However, camel case linking, or any title-based linking scheme is not free of encumbrances.
+However, camel case linking, or any title-based linking scheme, is not free of encumbrances.
 First, you have to know the title of the destination page before you can link to it (perhaps easier to remember than a URL, but still easy to misspell).
 Second, node titles must be set when a node is created and never changed:  changing a node's title would effectively break all links that point to the node, since titles are used as node identifiers.
 Third, links still must be anchored inline, and furthermore, the anchor text is forced by the linking syntax.
