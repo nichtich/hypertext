@@ -319,7 +319,7 @@ if( $requirePassword and $passwordCorrect ) {
                            -type=>'application-x/gzip',
                            -expires=>'now',
                            -Cache_control=>'no-cache',
-                           -Content_Ddisposition=>"$tarballContentDisposition",
+                           -Content_Disposition=>"$tarballContentDisposition",
                            -cookie=>[ $cookieToSet ] );
     }
     else {
