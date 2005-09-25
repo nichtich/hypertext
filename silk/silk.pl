@@ -67,6 +67,10 @@
 # 2004-December-7   Jason Rohrer
 # Changed to use new location of MD5 module.
 #
+# 2005-September-25   Jason Rohrer
+# Changed to leave user linebreaks in file and only process them for display.
+# Changed so that login expires in 24 hours instead of 1 hour.
+#
 
 my $silkVersion = "0.1.?";
 
@@ -311,7 +315,7 @@ if( $requirePassword and $passwordCorrect ) {
     else {
         $cookieToSet = $cgiQuery->cookie( -name=>"password",
                                           -value=>"$password",
-                                          -expires=>"+1h" );
+                                          -expires=>"+24h" );
     }
 
     if( $action eq "getDataTarball" ) {
@@ -603,13 +607,13 @@ elsif( $action eq "updateNode" ) {
 
     my $nodeText = $cgiQuery->param( "nodeText" ) || '';
 
-    # fix "other" newline style.
+    # fix "other" newline styles.
+    
+    # replace \r\n (DOS) with \n
+    $nodeText =~ s/\r\n/\n/g;
+    # replace \r (Mac) with \n
     $nodeText =~ s/\r/\n/g;
             
-            
-    # convert non-standard paragraph breaks (with extra whitespace)
-    # to newline-newline breaks
-    $nodeText =~ s/\s*\n\s*\n/\n\n/g;
     
     
     # replace all quck-ref links with direct node links
@@ -1314,6 +1318,11 @@ sub printNode {
             $nodeText = "node does not exist";
         }
 
+        # convert non-standard paragraph breaks (with extra whitespace)
+        # to newline-newline breaks
+        $nodeText =~ s/\s*\n\s*\n\s*\n/\n\n/g;
+    
+
         # split into paragraphs
         @nodeElements = split( /\n\n/, $nodeText );
 
@@ -1403,6 +1412,10 @@ sub printNode {
               getNodeTitle( "x$1" ) .
               "<\/FONT><\/A>"/gei;
 
+        
+        # search for single-\n breaks and replace them with <BR>
+        $paragraph =~ 
+            s/\n/<BR>/g;
 
         print "$paragraph<BR><BR>\n";        
     }
